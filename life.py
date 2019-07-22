@@ -10,6 +10,7 @@ import parameters as p
 import environment as env
 import ColonyLifeSim as _cls
 import console
+import buildings
 
 class Entity(object):
     """docstring for Entity"""
@@ -505,10 +506,7 @@ class Entity(object):
         self.path = []
 
     def random_walk(self):
-        # if self.goto_tile == self.tile:
-        #     # print(self.name, str(self.goto_tile), str(self.tile))
-        #     self.reset_path()
-        gath_places = [b for b in self.buildings if isinstance(b, GatheringPlace)]
+        gath_places = [b for b in self.buildings if isinstance(b, buildings.GatheringPlace)]
         if gath_places and utils.distance2p(self.tile.getXY(), gath_places[0].tile.getXY()) > 25:
             self.goto_position(gath_places[0], state="BACKTOCAMP", state_short="GTGatPl")
         else:
@@ -524,8 +522,6 @@ class Entity(object):
                 if _tiles:
                     self.goto_tile = np.random.choice( _tiles )
                     self.work_left = 1
-                    # while self.goto_tile == self.tile and self.goto_tile.get_type() in self.forbidden_tiles:
-                    #     self.goto_tile = np.random.choice( self.get_visible_tiles(3) )
 
     def explore(self, _tiles):
         self.state = "EXPLORE"
@@ -1195,38 +1191,6 @@ class Tree(object):
     @staticmethod
     def get_good_tiles():
         return ["GRASS", "MOUNTAIN", "HILL", "SAND"]
-
-class Building(object):
-    """docstring for Building"""
-    def __init__(self, creator, tile):
-        super(Building, self).__init__()
-        self.creator = creator
-        self.tile = tile
-        self.tile.set_building(self)
-
-        self.creator.buildings.append(self)
-        self.creator.owned_buildings.append(self)
-        
-        self.name = "Building"
-
-        self.image = None
-
-    def get_image(self):
-        return self.image
-
-    def get_name(self):
-        return self.name
-
-    def update(self):
-        pass
-
-class GatheringPlace(Building):
-    """docstring for GatheringPlace"""
-    def __init__(self, creator, tile):
-        super(GatheringPlace, self).__init__(creator, tile)
-
-        self.name = "GatheringPlace"
-        self.image = pygame.image.load("./data/images/fireplace.png")
 
         
         
