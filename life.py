@@ -12,6 +12,36 @@ import ColonyLifeSim as _cls
 import console
 import buildings
 
+class Community(object):
+    """docstring for Community"""
+    def __init__(self, simu, chief):
+        super(Community, self).__init__()
+        self.simu = simu
+        self.chief = chief
+        
+        self.members = [self.chief]
+
+
+    def update(self):
+        if self.chief.dead:
+            self.chief = None
+        self.members = [x for x in self.members if not x.dead]
+
+        if self.chief == None:
+            self.chief = np.random.choice(self.members)
+
+    def add_member(self, m):
+        self.members.append(m)
+
+    def add_members(self, m_list):
+        for m in m_list:
+            self.add_member(m)
+
+    def set_chief(self, nc):
+        self.chief = nc
+
+
+
 class Entity(object):
     """docstring for Entity"""
     def __init__(self, simulation, tile=None, name=("Ent", "", "Basename")):
@@ -130,15 +160,21 @@ class Entity(object):
 
         self.buildings       = []
         self.owned_buildings = []
+        self.community = None
 
         self.behaviours_by_priority = []
         self.behaviours_by_priority.append(self.b_drink)
         self.behaviours_by_priority.append(self.b_eat)
         self.behaviours_by_priority.append(self.b_collect_water)
         self.behaviours_by_priority.append(self.b_harvest_food)
+
         self.behaviours_by_priority.append(self.b_search_and_mate)
+        
+        self.behaviours_by_priority.append(self.b_form_community)
+
         self.behaviours_by_priority.append(self.b_explore)
         self.behaviours_by_priority.append(self.b_plant_food)
+
         self.behaviours_by_priority.append(self.b_idle)
 
     def update(self):
@@ -821,6 +857,10 @@ class Entity(object):
                 return False
         else:
             return False
+
+    def b_form_community(self):
+        #TODO
+        return False
 
     def set_name(self, name):
         self.all_names = name

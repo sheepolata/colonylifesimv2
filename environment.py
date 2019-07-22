@@ -22,6 +22,7 @@ class Simulation(object):
         self.foods = []
         self.trees = []
         self.buildings = []
+        self.communities = []
 
         self.grid.generate_map_with_perlin(nb_river=nb_river)
 
@@ -44,6 +45,7 @@ class Simulation(object):
         self.entities = []
         self.trees = []
         self.buildings = []
+        self.communities = []
         
         self.grid.rivers_path = []
         self.grid.river_tiles = []
@@ -69,6 +71,8 @@ class Simulation(object):
 
     def update(self):
 
+        for c in self.communities:
+            c.update()
         for b in self.buildings:
             b.update()
         for e in self.entities:
