@@ -27,8 +27,8 @@ class Entity(object):
         self.stats_norm = {}
         self.stats_bonus = {}
 
-        self.set_stat("STRENGTH", np.random.randint(8, 19))
-        self.set_stat("CONSTITUTION", np.random.randint(8, 19))
+        self.set_stat("STRENGTH"    , np.random.randint(6, 19))
+        self.set_stat("CONSTITUTION", np.random.randint(6, 19))
 
         self.all_names = name
         self.name = self.all_names[0] + " " + (self.all_names[1][0] + ". " if self.all_names[1] != "" else "") + self.all_names[2]
@@ -72,7 +72,7 @@ class Entity(object):
 
         self.dead = False
 
-        self.health_max = 100 * self.stats_bonus["CONSTITUTION"]
+        self.health_max = int(round(np.random.randint(90, 111) * self.stats_bonus["CONSTITUTION"]))
         self.health = self.health_max
 
         self.parents = (None, None)
