@@ -118,57 +118,59 @@ def draw_entity(entity, surface, selected, alphasurf):
                         entity.tile.middle, 
                         min(int(entity.tile.rect.w/2)-1, int(entity.tile.rect.h/2)-1),
                         1)
-        for t in selected.known_tiles:
-            t.redraw = True
-            pygame.draw.rect(alphasurf, (255, 255, 255, 64), t.rect, 1)
 
-        for f in selected.friends:
-            pygame.draw.line(alphasurf, (0,255,0,128), entity.tile.middle, f.tile.middle, 1)
+        if DEBUG:
+            for t in selected.known_tiles:
+                t.redraw = True
+                pygame.draw.rect(alphasurf, (255, 255, 255, 64), t.rect, 1)
 
-            #Bottom right
-            if entity.tile.middle[0] > f.tile.middle[0] and entity.tile.middle[1] > f.tile.middle[1]:
-                r = pygame.Rect(f.tile.middle, ((entity.tile.middle[0]-f.tile.middle[0]), (entity.tile.middle[1]-f.tile.middle[1])))
-            #Bottom left
-            elif entity.tile.middle[0] <= f.tile.middle[0] and entity.tile.middle[1] > f.tile.middle[1]:
-                r = pygame.Rect((entity.tile.middle[0], f.tile.middle[1]), ((f.tile.middle[0]-entity.tile.middle[0]), (entity.tile.middle[1]-f.tile.middle[1])))
-            #Top left
-            elif entity.tile.middle[0] <= f.tile.middle[0] and entity.tile.middle[1] <= f.tile.middle[1]:
-                r = pygame.Rect(entity.tile.middle, ((f.tile.middle[0]-entity.tile.middle[0]), (f.tile.middle[1]-entity.tile.middle[1])))
-            #Top right
-            elif entity.tile.middle[0] > f.tile.middle[0] and entity.tile.middle[1] <= f.tile.middle[1]:
-                r = pygame.Rect((f.tile.middle[0], entity.tile.middle[1]), ((entity.tile.middle[0]-f.tile.middle[0]), (f.tile.middle[1]-entity.tile.middle[1])))
-            else:
-                r = pygame.Rect((0,0),(0,0))
+            for f in selected.friends:
+                pygame.draw.line(alphasurf, (0,255,0,128), entity.tile.middle, f.tile.middle, 1)
 
-            list1d=entity.grid.get_tile_1D_list()
-            lres = r.collidelistall(list1d)
-            for i in lres:
-                # print("REDRAW")
-                list1d[i].redraw = True
+                #Bottom right
+                if entity.tile.middle[0] > f.tile.middle[0] and entity.tile.middle[1] > f.tile.middle[1]:
+                    r = pygame.Rect(f.tile.middle, ((entity.tile.middle[0]-f.tile.middle[0]), (entity.tile.middle[1]-f.tile.middle[1])))
+                #Bottom left
+                elif entity.tile.middle[0] <= f.tile.middle[0] and entity.tile.middle[1] > f.tile.middle[1]:
+                    r = pygame.Rect((entity.tile.middle[0], f.tile.middle[1]), ((f.tile.middle[0]-entity.tile.middle[0]), (entity.tile.middle[1]-f.tile.middle[1])))
+                #Top left
+                elif entity.tile.middle[0] <= f.tile.middle[0] and entity.tile.middle[1] <= f.tile.middle[1]:
+                    r = pygame.Rect(entity.tile.middle, ((f.tile.middle[0]-entity.tile.middle[0]), (f.tile.middle[1]-entity.tile.middle[1])))
+                #Top right
+                elif entity.tile.middle[0] > f.tile.middle[0] and entity.tile.middle[1] <= f.tile.middle[1]:
+                    r = pygame.Rect((f.tile.middle[0], entity.tile.middle[1]), ((entity.tile.middle[0]-f.tile.middle[0]), (f.tile.middle[1]-entity.tile.middle[1])))
+                else:
+                    r = pygame.Rect((0,0),(0,0))
 
-        for f in selected.foes:
-            pygame.draw.line(alphasurf, (255,0,0,128), entity.tile.middle, f.tile.middle, 1)
+                list1d=entity.grid.get_tile_1D_list()
+                lres = r.collidelistall(list1d)
+                for i in lres:
+                    # print("REDRAW")
+                    list1d[i].redraw = True
 
-            #Bottom right
-            if entity.tile.middle[0] > f.tile.middle[0] and entity.tile.middle[1] > f.tile.middle[1]:
-                r = pygame.Rect(f.tile.middle, ((entity.tile.middle[0]-f.tile.middle[0]), (entity.tile.middle[1]-f.tile.middle[1])))
-            #Bottom left
-            elif entity.tile.middle[0] <= f.tile.middle[0] and entity.tile.middle[1] > f.tile.middle[1]:
-                r = pygame.Rect((entity.tile.middle[0], f.tile.middle[1]), ((f.tile.middle[0]-entity.tile.middle[0]), (entity.tile.middle[1]-f.tile.middle[1])))
-            #Top left
-            elif entity.tile.middle[0] <= f.tile.middle[0] and entity.tile.middle[1] <= f.tile.middle[1]:
-                r = pygame.Rect(entity.tile.middle, ((f.tile.middle[0]-entity.tile.middle[0]), (f.tile.middle[1]-entity.tile.middle[1])))
-            #Top right
-            elif entity.tile.middle[0] > f.tile.middle[0] and entity.tile.middle[1] <= f.tile.middle[1]:
-                r = pygame.Rect((f.tile.middle[0], entity.tile.middle[1]), ((entity.tile.middle[0]-f.tile.middle[0]), (f.tile.middle[1]-entity.tile.middle[1])))
-            else:
-                r = pygame.Rect((0,0),(0,0))
+            for f in selected.foes:
+                pygame.draw.line(alphasurf, (255,0,0,128), entity.tile.middle, f.tile.middle, 1)
 
-            list1d=entity.grid.get_tile_1D_list()
-            lres = r.collidelistall(list1d)
-            for i in lres:
-                # print("REDRAW")
-                list1d[i].redraw = True
+                #Bottom right
+                if entity.tile.middle[0] > f.tile.middle[0] and entity.tile.middle[1] > f.tile.middle[1]:
+                    r = pygame.Rect(f.tile.middle, ((entity.tile.middle[0]-f.tile.middle[0]), (entity.tile.middle[1]-f.tile.middle[1])))
+                #Bottom left
+                elif entity.tile.middle[0] <= f.tile.middle[0] and entity.tile.middle[1] > f.tile.middle[1]:
+                    r = pygame.Rect((entity.tile.middle[0], f.tile.middle[1]), ((f.tile.middle[0]-entity.tile.middle[0]), (entity.tile.middle[1]-f.tile.middle[1])))
+                #Top left
+                elif entity.tile.middle[0] <= f.tile.middle[0] and entity.tile.middle[1] <= f.tile.middle[1]:
+                    r = pygame.Rect(entity.tile.middle, ((f.tile.middle[0]-entity.tile.middle[0]), (f.tile.middle[1]-entity.tile.middle[1])))
+                #Top right
+                elif entity.tile.middle[0] > f.tile.middle[0] and entity.tile.middle[1] <= f.tile.middle[1]:
+                    r = pygame.Rect((f.tile.middle[0], entity.tile.middle[1]), ((entity.tile.middle[0]-f.tile.middle[0]), (f.tile.middle[1]-entity.tile.middle[1])))
+                else:
+                    r = pygame.Rect((0,0),(0,0))
+
+                list1d=entity.grid.get_tile_1D_list()
+                lres = r.collidelistall(list1d)
+                for i in lres:
+                    # print("REDRAW")
+                    list1d[i].redraw = True
 
     if DEBUG:
 

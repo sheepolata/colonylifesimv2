@@ -20,6 +20,18 @@ class Entity(object):
 
         self.forbidden_tiles = Entity.get_forbidden_tiles_base()
 
+        self.social_vector = np.random.choice(p.social_features_list, p.sim_params["SOCIAL_FEATURES"], replace=False)
+
+        self.stats_raw = {}
+        self.stats_norm = {}
+        self.stats_bonus = {}
+
+        self.set_stat("STRENGTH", np.random.randint(8, 19))
+        self.set_stat("CONSTITUTION", np.random.randint(8, 19))
+
+        self.all_names = name
+        self.name = self.all_names[0] + " " + (self.all_names[1][0] + ". " if self.all_names[1] != "" else "") + self.all_names[2]
+
         self.goto_tile = None
         self.explore_goal = None
         self.goto_plant_tile = None
@@ -29,7 +41,11 @@ class Entity(object):
         self.total_tiles = len(self.simu.grid.get_tile_1D_list())
         # self.total_reachable_tiles = len([t for t in self.simu.grid.get_tile_1D_list() if t.get_type() not in self.forbidden_tiles])
         self.total_reachable_tiles = len([t for t in self.simu.grid.get_tile_1D_list() if t.get_type() not in self.forbidden_tiles+["SHALLOW_WATER"]])
-        self.exploration_satistaction = int(self.total_reachable_tiles * (0.15 + (np.random.random() * 0.25)))
+        self.exploration_satistaction = int(self.total_reachable_tiles * (0.25 + (np.random.random() * 0.25)))
+        
+        if "CURIOSITY" in [x.feature for x in self.social_vector]:
+            self.exploration_satistaction = min(self.exploration_satistaction*1.25, self.total_reachable_tiles)
+        
         self.visible_tiles = [[], [], [], [], []]
 
         if tile != None:
@@ -38,8 +54,6 @@ class Entity(object):
             self.tile = np.random.choice(self.grid.grid[np.random.randint(0, len(self.grid.grid[0]))])
         self.tile.add_entity(self)
 
-        self.all_names = name
-        self.name = self.all_names[0] + " " + (self.all_names[1][0] + ". " if self.all_names[1] != "" else "") + self.all_names[2]
 
         self.color = (255, 208, 42, 255)
 
@@ -57,7 +71,7 @@ class Entity(object):
 
         self.dead = False
 
-        self.health_max = 100
+        self.health_max = 100 * self.stats_bonus["CONSTITUTION"]
         self.health = self.health_max
 
         self.parents = (None, None)
@@ -78,10 +92,12 @@ class Entity(object):
         self.nutrition_max  = 2400 #10 days, 1 day == 240
         self.nutrition      = self.nutrition_max
         self.nutrition_rate = 0.8+(np.random.random()*0.4)
-        self.max_food_inventory  = round(self.nutrition_max * (4.0/10.0))
+        self.max_food_inventory_factor = 2 * self.stats_bonus["STRENGTH"]
+        self.max_food_inventory  = round(self.nutrition_max * self.max_food_inventory_factor)
+        self.has_to_harvest_food = False
 
-        self.food_eaten_per_tick = (self.nutrition_max/10.0)/3.0
-        self.max_food_harvested  = (self.nutrition_max/10.0)/2.0
+        self.food_eaten_per_tick = (self.nutrition_max/6.0)
+        self.max_food_harvested  = (self.nutrition_max/20.0)
         self.has_to_eat = False
 
         self.food_memory = []
@@ -93,10 +109,12 @@ class Entity(object):
         self.thirst_max  = 720 #3 days, 1 day == 240
         self.thirst      = self.thirst_max
         self.thirst_rate = 0.8+(np.random.random()*0.4)
-        self.max_water_inventory = round(self.thirst_max)
+        self.max_water_inventory_factor = 3 * self.stats_bonus["STRENGTH"]
+        self.max_water_inventory = round(self.thirst_max*self.max_water_inventory_factor)
+        self.has_to_collect_water = False
 
         self.water_drank_per_tick = (self.thirst_max/3.0)
-        self.max_water_harvested  = (self.thirst_max/3.0)*2
+        self.max_water_harvested  = (self.thirst_max/1.5)
         self.has_to_drink = False
 
         self.water_memory = []
@@ -106,10 +124,6 @@ class Entity(object):
         self.friends = []
         self.foes    = []
         self.relations = {}
-        mu, sigma = 0, 0.1
-        # self.social_vector = utils.normalise_list([np.random.normal(mu, sigma) for i in range(p.sim_params["SOCIAL_FEATURES"])])
-        # self.social_vector = [np.random.random() for i in range(p.sim_params["SOCIAL_FEATURES"])]
-        self.social_vector = np.random.choice(p.social_features_list, p.sim_params["SOCIAL_FEATURES"], replace=False)
 
         # print(self.all_names, [f.feature for f in self.social_vector])
 
@@ -605,6 +619,20 @@ class Entity(object):
             child.grow_food_tile = child.parents[0].grow_food_tile
         else:
             child.grow_food_tile = child.parents[1].grow_food_tile
+
+        if np.random.random() < 0.5:
+            child.set_stat("STRENGTH", child.parents[0].stats_raw["STRENGTH"])
+        else:
+            child.set_stat("STRENGTH", child.parents[1].stats_raw["STRENGTH"])
+        if np.random.random() < 0.05:
+            child.set_stat("STRENGTH", child.stats_raw["STRENGTH"] + np.random.choice([-1, 1]))
+
+        if np.random.random() < 0.5:
+            child.set_stat("CONSTITUTION", child.parents[0].stats_raw["CONSTITUTION"])
+        else:
+            child.set_stat("CONSTITUTION", child.parents[1].stats_raw["CONSTITUTION"])
+        if np.random.random() < 0.05:
+            child.set_stat("CONSTITUTION", child.stats_raw["CONSTITUTION"] + np.random.choice([-1, 1]))
         
         self.work_left = np.random.randint(6, 6*12)
 
@@ -629,10 +657,17 @@ class Entity(object):
             return False
 
     def b_collect_water(self):
-        if "WATER" not in self.inventory or self.inventory["WATER"] < self.max_water_inventory:
+        if "WATER" not in self.inventory or self.inventory["WATER"] < (self.max_water_inventory/self.max_water_inventory_factor) or self.has_to_collect_water:
+            self.has_to_collect_water = True
+            if "WATER" not in self.inventory:
+                self.inventory["WATER"] = 0
+            if self.inventory["WATER"] == self.max_water_inventory:
+                self.has_to_collect_water = False
+                return False
             t = self.near_water()
             if t != None:
                 self.collect_water()
+                self.work_left = 1
                 self.reset_path()
                 return True
             else:
@@ -658,10 +693,17 @@ class Entity(object):
             return False
 
     def b_harvest_food(self):
-        if "FOOD" not in self.inventory or self.inventory["FOOD"] < self.max_food_inventory:
+        if "FOOD" not in self.inventory or self.inventory["FOOD"] < (self.max_food_inventory/self.max_food_inventory_factor) or self.has_to_harvest_food:
+            self.has_to_harvest_food = True
+            if "FOOD" not in self.inventory:
+                self.inventory["FOOD"] = 0
+            if self.inventory["FOOD"] == self.max_food_inventory:
+                self.has_to_harvest_food = False
+                return False
             f = self.near_food()
             if f != None:
                 self.harvest_food(f)
+                self.work_left = 1
                 self.reset_path()
                 return True
             else:
@@ -787,6 +829,11 @@ class Entity(object):
     def set_name(self, name):
         self.all_names = name
         self.name = self.all_names[0] + " " + (self.all_names[1][0] + ". " if self.all_names[1] != "" else "") + self.all_names[2]
+
+    def set_stat(self, stat, value):
+        self.stats_raw[stat] = value
+        self.stats_norm[stat] = utils.normalise(self.stats_raw[stat], 0, 20)
+        self.stats_bonus[stat] = self.stats_norm[stat]*2.0
 
     #GLOBALS
     @staticmethod
@@ -978,6 +1025,8 @@ class Food(object):
                 self.available = False
                 self.dead = True
                 self.tile.set_food(None)
+                if isinstance(self, PlantedFood):
+                    self.creator.planted_food_list.remove(self)
 
             self.lifespan -= 1
             if self.lifespan > 0:
@@ -1010,7 +1059,7 @@ class ForestFood(Food):
     def __init__(self, simu, tile, biome):
         super(ForestFood, self).__init__(simu, tile, biome)
 
-        self.resource_max = np.random.randint(0, 2) * 240 + np.random.randint(0, 240)
+        self.resource_max = np.random.randint(1, 2) * 240 + np.random.randint(0, 240)
         self.resource_qtt = 1
         self.regrow_rate = (1.0 + np.random.random()*0.5)
 
@@ -1037,31 +1086,31 @@ class PlantedFood(Food):
 
         self.available = False
 
-    def update(self):
-        if self.act_tck_cnt >= p.sim_params["ACTION_TICK"]:
-            self.act_tck_cnt = 0
+    # def update(self):
+    #     if self.act_tck_cnt >= p.sim_params["ACTION_TICK"]:
+    #         self.act_tck_cnt = 0
 
-            if self.resource_qtt <= 0:
-                self.available = False
-                self.dead = True
+    #         if self.resource_qtt <= 0:
+    #             self.available = False
+    #             self.dead = True
 
-            if self.dead:
-                self.resource_qtt = 0
-                self.available = False
-                self.dead = True
-                self.tile.set_food(None)
-                self.creator.planted_food_list.remove(self)
+    #         if self.dead:
+    #             self.resource_qtt = 0
+    #             self.available = False
+    #             self.dead = True
+    #             self.tile.set_food(None)
+    #             self.creator.planted_food_list.remove(self)
 
-            self.lifespan -= 1
-            if self.lifespan > 0:
-                self.resource_qtt = min(self.resource_max, self.resource_qtt+self.regrow_rate)
-            else:
-                self.resource_qtt = min(self.resource_max, self.resource_qtt-(self.regrow_rate/2))
+    #         self.lifespan -= 1
+    #         if self.lifespan > 0:
+    #             self.resource_qtt = min(self.resource_max, self.resource_qtt+self.regrow_rate)
+    #         else:
+    #             self.resource_qtt = min(self.resource_max, self.resource_qtt-(self.regrow_rate/2))
 
-            if not self.available and self.resource_qtt == self.resource_max:#> self.resource_max*0.95:
-                self.available = True
-        else:
-            self.act_tck_cnt += 1
+    #         if not self.available and self.resource_qtt == self.resource_max:#> self.resource_max*0.95:
+    #             self.available = True
+    #     else:
+    #         self.act_tck_cnt += 1
 
 
 

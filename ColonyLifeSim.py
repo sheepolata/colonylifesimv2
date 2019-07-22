@@ -236,13 +236,24 @@ def main():
                 ent_txt_social += sf.feature.lower() + (", " if i < len(selected.social_vector) else "")
 
             
-            ent_txt1 = "HP {}%, Food {}%, Thrist {}% {}".format(round(selected.health/selected.health_max*100, 1),
+            ent_txt1 = "HP {}/{}, Food {}%, Thrist {}% {}".format(round(selected.health,1), selected.health_max,
                                                                 round(selected.nutrition/selected.nutrition_max*100, 1),
                                                                 round(selected.thirst/selected.thirst_max*100, 1),
                                                                 selected.state)
-            ent_txt2 = "   "
+
+            ent_txt_stats = "Str {} Con {}".format(selected.stats_raw["STRENGTH"], selected.stats_raw["CONSTITUTION"])
+
+            if len(selected.inventory) > 0:
+                ent_txt2 = "   "
+            else:
+                ent_txt2 = ""
             for k in selected.inventory:
-                ent_txt2 += "{}:{} ".format(k, selected.inventory[k])
+                if k == "FOOD":
+                    ent_txt2 += "{}:x{} ".format(k, round(selected.inventory[k]/selected.nutrition_max, 2))
+                elif k=="WATER":
+                    ent_txt2 += "{}:x{} ".format(k, round(selected.inventory[k]/selected.thirst_max, 2))
+                else:
+                    ent_txt2 += "{}:{} ".format(k, selected.inventory[k])
 
             if selected.friends or selected.foes:
                 ent_txt3 = "   Frds: {} Foes: {}".format(len(selected.friends), len(selected.foes))
@@ -254,6 +265,7 @@ def main():
             ent_txt0 = ""
             ent_txt_social = ""
             ent_txt1 = ""
+            ent_txt_stats = ""
             ent_txt2 = ""
             ent_txt3 = ""
             ent_txt4 = ""
@@ -269,6 +281,10 @@ def main():
         if txt_lines[index] != ent_txt1:
             changed = True
             txt_lines[index] = ent_txt1
+        index += 1
+        if txt_lines[index] != ent_txt_stats:
+            changed = True
+            txt_lines[index] = ent_txt_stats
         index += 1
         if txt_lines[index] != ent_txt2:
             changed = True
@@ -356,13 +372,13 @@ def main():
                 txt_lines[index] = _txt
             index += 1
 
-            _txt = "Average Age: {} days old, Friends: {}; Foes: {}; Libido: {}".format(round(np.mean([e.age for e in simu.entities]), 1), round(np.mean([len(e.friends) for e in simu.entities]), 1), round(np.mean([len(e.foes) for e in simu.entities]), 1), round(np.mean([e.libido for e in simu.entities]), 1))
+            _txt = "Avg. Age: {} days old, Friends: {}; Foes: {}; Libido: {}".format(round(np.mean([e.age for e in simu.entities]), 1), round(np.mean([len(e.friends) for e in simu.entities]), 1), round(np.mean([len(e.foes) for e in simu.entities]), 1), round(np.mean([e.libido for e in simu.entities]), 1))
             if txt_lines[index] != _txt:
                 changed = True
                 txt_lines[index] = _txt
             index += 1
 
-            _txt = "Average Exploration: {}%".format(
+            _txt = "Avg. Exploration: {}%".format(
                                             round(np.mean([(len(e.known_tiles)/e.total_tiles)*100 for e in simu.entities]), 1)
                                                     )
             if txt_lines[index] != _txt:
@@ -379,7 +395,17 @@ def main():
             avgh = round((np.mean([e.health/e.health_max for e in simu.entities]))*100, 1)
             avgn = round((np.mean([e.nutrition/e.nutrition_max for e in simu.entities]))*100, 1)
             avgt = round((np.mean([e.thirst/e.thirst_max for e in simu.entities]))*100, 1)
-            _txt = "Average health: {}%, nutrition: {}%, thirst: {}%".format(avgh, avgn, avgt)
+            _txt = "Avg. status: HP: {}%, Nutrition: {}%, Thirst: {}%".format(avgh, avgn, avgt)
+            if txt_lines[index] != _txt:
+                changed = True
+                txt_lines[index] = _txt
+            index += 1
+
+            _txt= "Avg. stats: Str {} Con {}".format(
+                                                round(np.mean([e.stats_raw["STRENGTH"] for e in simu.entities]), 1),
+                                                round(np.mean([e.stats_raw["CONSTITUTION"] for e in simu.entities]), 1)
+                                                )
+
             if txt_lines[index] != _txt:
                 changed = True
                 txt_lines[index] = _txt
@@ -400,7 +426,7 @@ def main():
                 txt_lines[index] = _txt
             index += 1
         else:
-            for i in range(7):
+            for i in range(8):
                 _txt = " "
                 if txt_lines[index] != _txt:
                     changed = True
