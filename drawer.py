@@ -123,7 +123,7 @@ def draw_entity(entity, surface, selected, alphasurf):
             pygame.draw.rect(alphasurf, (255, 255, 255, 64), t.rect, 1)
 
         for f in selected.friends:
-            pygame.draw.line(surface, (0,255,0,255), entity.tile.middle, f.tile.middle, 1)
+            pygame.draw.line(alphasurf, (0,255,0,128), entity.tile.middle, f.tile.middle, 1)
 
             #Bottom right
             if entity.tile.middle[0] > f.tile.middle[0] and entity.tile.middle[1] > f.tile.middle[1]:
@@ -147,7 +147,7 @@ def draw_entity(entity, surface, selected, alphasurf):
                 list1d[i].redraw = True
 
         for f in selected.foes:
-            pygame.draw.line(surface, (0,255,0,255), entity.tile.middle, f.tile.middle, 1)
+            pygame.draw.line(alphasurf, (255,0,0,128), entity.tile.middle, f.tile.middle, 1)
 
             #Bottom right
             if entity.tile.middle[0] > f.tile.middle[0] and entity.tile.middle[1] > f.tile.middle[1]:

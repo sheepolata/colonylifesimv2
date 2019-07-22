@@ -730,7 +730,7 @@ class Entity(object):
             and len(self.known_tiles) > self.exploration_satistaction
             # and len(self.food_memory) < 6
             # and not (closest_mem_food and utils.distance2p(self.tile, closest_mem_food[0].tile) < 15)
-            and len(self.friends) > 2
+            and len(self.friends) > 3
             # and not [fr for fr in self.friends if fr.grow_food_tile]
             ):
 

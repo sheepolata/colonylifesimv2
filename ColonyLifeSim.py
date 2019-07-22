@@ -130,14 +130,14 @@ def main():
                 if event.button == 3 and pygame.key.get_mods() & pygame.KMOD_CTRL:
                     pass
                 if event.button == 3:
-                    for x in range(simu.grid.width):
-                        for y in range(simu.grid.height):
-                            tile = simu.grid.grid[x][y]
-                            if tile.rect.collidepoint(pygame.mouse.get_pos()):
-                                if tile.building == None:
-                                    simu.add_building(life.GatheringPlace(None, tile))
-                                else:
-                                    simu.rm_building(tile.building)
+                    # for x in range(simu.grid.width):
+                    #     for y in range(simu.grid.height):
+                            # tile = simu.grid.grid[x][y]
+                            # if tile.rect.collidepoint(pygame.mouse.get_pos()):
+                                # if tile.building == None:
+                                #     simu.add_building(life.GatheringPlace(None, tile))
+                                # else:
+                                #     simu.rm_building(tile.building)
                     pass
         #UPDATE
         if not pause and started:
