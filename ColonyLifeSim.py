@@ -6,6 +6,8 @@ import numpy as np
 import math
 import time
 
+import threading
+
 import parameters as p
 import environment as env
 import drawer
@@ -62,6 +64,13 @@ def main():
     print("LAUNCH COLONY LIFE SIMULATION v2.0, Welcome !")
     t = time.time()
 
+    def thread_func(_simu):
+        while not _simu.finished:
+            _simu.update()
+
+    simu_th = threading.Thread(target=thread_func, args=(simu,))
+    simu_th.start()
+
 
     while run:
         clock.tick(120)
@@ -75,8 +84,10 @@ def main():
             elif event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
                     run = False
+                    simu.finished = True
                 if event.key == K_SPACE:
                     pause = not pause
+                    simu.paused = not simu.paused
                 if event.key == K_F12:
                     drawer.DEBUG = not drawer.DEBUG
                 if event.key == K_F1:
@@ -147,7 +158,7 @@ def main():
             else:
                 tick += 1
 
-            simu.update()
+        # simu.update()
 
         #DRAW
         if not fast:
@@ -447,7 +458,7 @@ def main():
 
         # print("Avg friends: {} Avg Foes: {}\r".format(round(np.mean([len(e.friends) for e in simu.entities])/len(simu.entities), 2), round(np.mean([len(e.foes) for e in simu.entities])/len(simu.entities), 2)), end='', flush=True)
 
-
+    simu_th.join()
     print("END OF COLONY LIFE SIMULATION ! Ended in approx. {} hours".format( round((time.time() - t)/60/24, 2) ))
 
 if __name__ == '__main__':

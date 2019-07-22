@@ -22,6 +22,9 @@ class Simulation(object):
         self.trees = []
         self.buildings = []
 
+        self.paused = False
+        self.finished = False
+
         self.grid.generate_map_with_perlin(nb_river=nb_river)
 
         for i in range(nb_ent):
@@ -39,6 +42,8 @@ class Simulation(object):
 
 
     def reset(self):
+        self.paused = True
+
         self.foods = []
         self.entities = []
         self.trees = []
@@ -66,25 +71,29 @@ class Simulation(object):
         life.Entity.randomise_state_and_family_all(self.entities)
         self.print_families()
 
+        self.paused = False
+
     def update(self):
 
-        for b in self.buildings:
-            b.update()
-        for e in self.entities:
-            e.update()
-        for f in self.foods:
-            f.update()
-        for t in self.trees:
-            t.update()
+        if not self.paused:
 
-        # print(len(self.buildings))
+            for b in self.buildings:
+                b.update()
+            for e in self.entities:
+                e.update()
+            for f in self.foods:
+                f.update()
+            for t in self.trees:
+                t.update()
 
-        self.nb_dead += len([x for x in self.entities if x.dead])
+            # print(len(self.buildings))
 
-        self.entities = [x for x in self.entities if not x.dead]
-        self.foods = [x for x in self.foods if not x.dead]
-        self.trees = [x for x in self.trees if not x.dead]
-        self.buildings = [x for x in self.buildings if x.tile != None]
+            self.nb_dead += len([x for x in self.entities if x.dead])
+
+            self.entities = [x for x in self.entities if not x.dead]
+            self.foods = [x for x in self.foods if not x.dead]
+            self.trees = [x for x in self.trees if not x.dead]
+            self.buildings = [x for x in self.buildings if x.tile != None]
 
     def add_entity(self, e):
         self.entities.append(e)
