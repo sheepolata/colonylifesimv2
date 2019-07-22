@@ -9,6 +9,7 @@ import pathfinding as pf
 import perlin
 import life
 import console
+import buildings
 
 class Simulation(object):
     """docstring for Simulation"""
