@@ -824,7 +824,7 @@ class Entity(object):
                     # for fr in self.friends:
                     #     if fr.grow_food_tile == []:
                     #         fr.grow_food_tile = self.grow_food_tile
-                    # console.console.print("{} chose {} field!".format(self.name, "her" if self.sex=="F" else "his"))
+                    console.console.print("{} chose {} field!".format(self.name, "her" if self.sex=="F" else "his"))
                     return True
             else:
                 return False
