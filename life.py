@@ -167,14 +167,11 @@ class Entity(object):
         self.behaviours_by_priority.append(self.b_eat)
         self.behaviours_by_priority.append(self.b_collect_water)
         self.behaviours_by_priority.append(self.b_harvest_food)
-
         self.behaviours_by_priority.append(self.b_search_and_mate)
-        
         self.behaviours_by_priority.append(self.b_form_community)
-
         self.behaviours_by_priority.append(self.b_explore)
         self.behaviours_by_priority.append(self.b_plant_food)
-
+        self.behaviours_by_priority.append(self.b_invite_friend_to_field)
         self.behaviours_by_priority.append(self.b_idle)
 
     def update(self):
@@ -825,10 +822,11 @@ class Entity(object):
                     self.grow_food_tile = []
                     return False
                 else:
-                    for fr in self.friends:
-                        if fr.grow_food_tile == []:
-                            fr.grow_food_tile = self.grow_food_tile
-                    console.console.print("{} chose {} field!".format(self.name, "her" if self.sex=="F" else "his"))
+                    # for fr in self.friends:
+                    #     if fr.grow_food_tile == []:
+                    #         fr.grow_food_tile = self.grow_food_tile
+                    # console.console.print("{} chose {} field!".format(self.name, "her" if self.sex=="F" else "his"))
+                    return True
             else:
                 return False
         if self.grow_food_tile and len(self.planted_food_list) <= len(self.grow_food_tile):
@@ -855,6 +853,20 @@ class Entity(object):
                         return False
             else:
                 return False
+        else:
+            return False
+
+    def b_invite_friend_to_field(self):
+        friends_without_field = [x for x in self.friends if x.grow_food_tile == []]
+        if friends_without_field:
+            f = friends_without_field[0]
+            if f in self.tile.entities + utils.flatten([x.entities for x in self.tile.get_neighbours()]):
+                if f.grow_food_tile == []:
+                    f.grow_food_tile = self.grow_food_tile
+                return True
+            else:
+                self.goto_position(f.tile, state="GOTO FRIEND", state_short="GTFr")
+                return True
         else:
             return False
 
