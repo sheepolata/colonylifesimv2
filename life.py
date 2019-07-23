@@ -162,17 +162,19 @@ class Entity(object):
         self.owned_buildings = []
         self.community = None
 
-        self.behaviours_by_priority = []
-        self.behaviours_by_priority.append(self.b_drink)
-        self.behaviours_by_priority.append(self.b_eat)
-        self.behaviours_by_priority.append(self.b_collect_water)
-        self.behaviours_by_priority.append(self.b_harvest_food)
-        self.behaviours_by_priority.append(self.b_search_and_mate)
-        self.behaviours_by_priority.append(self.b_form_community)
-        self.behaviours_by_priority.append(self.b_explore)
-        self.behaviours_by_priority.append(self.b_plant_food)
-        self.behaviours_by_priority.append(self.b_invite_friend_to_field)
-        self.behaviours_by_priority.append(self.b_idle)
+        self.job = BasicJob(self)
+
+        # self.behaviours_by_priority = []
+        # self.behaviours_by_priority.append(self.b_drink)
+        # self.behaviours_by_priority.append(self.b_eat)
+        # self.behaviours_by_priority.append(self.b_collect_water)
+        # self.behaviours_by_priority.append(self.b_harvest_food)
+        # self.behaviours_by_priority.append(self.b_search_and_mate)
+        # self.behaviours_by_priority.append(self.b_form_community)
+        # self.behaviours_by_priority.append(self.b_explore)
+        # self.behaviours_by_priority.append(self.b_plant_food)
+        # self.behaviours_by_priority.append(self.b_invite_friend_to_field)
+        # self.behaviours_by_priority.append(self.b_idle)
 
     def update(self):
         if self.act_tck_cnt >= p.sim_params["ACTION_TICK"]:
@@ -212,7 +214,7 @@ class Entity(object):
 
             if self.work_left <= 0:
 
-                for b in self.behaviours_by_priority:
+                for b in self.job.behaviours_by_priority:#self.behaviours_by_priority:
                     if b():
                         break
 
@@ -1024,6 +1026,33 @@ class Entity(object):
             Entity.randomise_state_and_family(e, ent_list)
             # print(e.age_raw, e)
 
+class Job(object):
+    """docstring for Job"""
+    def __init__(self, entity):
+        super(Job, self).__init__()
+        self.entity = entity
+        self.name = "JOB"
+        self.behaviours_by_priority = []
+
+class BasicJob(Job):
+    """docstring for BasicJob"""
+    def __init__(self, entity):
+        super(BasicJob, self).__init__(entity)
+        self.name = "BASIC JOB"
+
+        self.behaviours_by_priority = []
+
+        self.behaviours_by_priority.append(self.entity.b_drink)
+        self.behaviours_by_priority.append(self.entity.b_eat)
+        self.behaviours_by_priority.append(self.entity.b_collect_water)
+        self.behaviours_by_priority.append(self.entity.b_harvest_food)
+        self.behaviours_by_priority.append(self.entity.b_search_and_mate)
+        self.behaviours_by_priority.append(self.entity.b_form_community)
+        self.behaviours_by_priority.append(self.entity.b_explore)
+        self.behaviours_by_priority.append(self.entity.b_plant_food)
+        self.behaviours_by_priority.append(self.entity.b_invite_friend_to_field)
+        self.behaviours_by_priority.append(self.entity.b_idle)
+        
 
 
 class Food(object):

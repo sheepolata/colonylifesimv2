@@ -226,10 +226,11 @@ def main():
         index += 1
 
         if selected != None:
-            ent_txt0 = "{} ({}/{}), {} days old".format(selected.name, 
+            ent_txt0 = "{} ({}/{}), {} days old, {}".format(selected.name, 
                                                 selected.sex, 
                                                 round(selected.libido) if not selected.pregnant else "P{}".format(round(selected.gestation/240)),
-                                                selected.age)
+                                                selected.age,
+                                                selected.job.name.lower())
 
             ent_txt_social = "Social feats: "
             for i, sf in enumerate(selected.social_vector):
@@ -417,6 +418,21 @@ def main():
                     d[e.state_short] += 1
                 else:
                     d[e.state_short] = 1
+            _sum = sum(d.values())
+            _txt = ""
+            for k in d:
+                _txt += ("{}:{}% ".format(k, round((d[k]/_sum)*100)))
+            if txt_lines[index] != _txt:
+                changed = True
+                txt_lines[index] = _txt
+            index += 1
+
+            d = {}
+            for e in simu.entities:
+                if e.job.name in d:
+                    d[e.job.name] += 1
+                else:
+                    d[e.job.name] = 1
             _sum = sum(d.values())
             _txt = ""
             for k in d:
