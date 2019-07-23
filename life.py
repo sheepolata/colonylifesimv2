@@ -59,6 +59,7 @@ class Entity(object):
 
         self.set_stat("STRENGTH"    , np.random.randint(6, 19))
         self.set_stat("CONSTITUTION", np.random.randint(6, 19))
+        self.set_stat("DEXTERITY", np.random.randint(6, 19))
 
         self.all_names = name
         self.name = self.all_names[0] + " " + (self.all_names[1][0] + ". " if self.all_names[1] != "" else "") + self.all_names[2]
@@ -290,15 +291,38 @@ class Entity(object):
         for e in ent_sorted:
             if e == self:
                 continue
-
             if e not in self.relations:
                 self.relations[e] = 0.0
-
             simil = p.SocialFeature.list_similatiry(self.social_vector, e.social_vector)
-            
             self.relations[e] += simil
-
             self.relations[e] = utils.clamp(self.relations[e], -p.sim_params["FRIEND_FOE_TRESH"]*2, p.sim_params["FRIEND_FOE_TRESH"]*2)
+
+        for e in self.friends:
+            for fr in e.friends:
+                if e == self:
+                    continue
+                if fr not in self.relations:
+                    self.relations[fr] = 0.0
+                self.relations[fr] += 0.01
+            for fr in e.foes:
+                if e == self:
+                    continue
+                if fr not in self.relations:
+                    self.relations[fr] = 0.0
+                self.relations[fr] -= 0.01
+        for e in self.foes:
+            for fr in e.friends:
+                if e == self:
+                    continue
+                if fr not in self.relations:
+                    self.relations[fr] = 0.0
+                self.relations[fr] -= 0.01
+            for fr in e.foes:
+                if e == self:
+                    continue
+                if fr not in self.relations:
+                    self.relations[fr] = 0.0
+                self.relations[fr] += 0.01
 
         for e in self.relations:
             if e not in self.friends and e not in self.foes:
@@ -310,21 +334,6 @@ class Entity(object):
                 self.friends.remove(e)
             elif e in self.foes and self.relations[e] >= -p.sim_params["FRIEND_FOE_TRESH"]:
                 self.foes.remove(e)
-
-        # for e in self.friends:
-        #     for fr in e.friends:
-        #         if e == self:
-        #             continue
-        #         if fr not in self.relations:
-        #             self.relations[fr] = 0.0
-        #         self.relations[fr] += 0.05
-        # for e in self.foes:
-        #     for fr in e.foes:
-        #         if e == self:
-        #             continue
-        #         if fr not in self.relations:
-        #             self.relations[fr] = 0.0
-        #         self.relations[fr] -= 0.05
 
         self.friends = [x for x in self.friends if not x.dead]
         self.foes = [x for x in self.foes if not x.dead]
@@ -776,17 +785,6 @@ class Entity(object):
             else:
                 self.explore(radius_tiles)
                 return True
-
-            # if len(radius_tiles) <= 0 and self.explore_goal == None:
-            #     radius_tiles = [t for t in self.get_visible_tiles(2)]
-            #     if len(radius_tiles) <= 0:
-            #         return False
-            #     else:
-            #         self.explore(radius_tiles)
-            #         return True
-            # else:
-            #     self.explore(radius_tiles)
-            #     return True
         else:
             return False
 
@@ -797,8 +795,7 @@ class Entity(object):
     def b_dig_well(self):
         pass
 
-    def b_plant_food(self):
-        # closest_mem_food = self.get_closest_foods([f.tile for f in self.food_memory])
+    def b_choose_field(self):
         if (not self.grow_food_tile 
             and len(self.known_tiles) > self.exploration_satistaction
             # and len(self.food_memory) < 6
@@ -831,6 +828,11 @@ class Entity(object):
                     return True
             else:
                 return False
+        else:
+            return False
+
+
+    def b_plant_food(self):
         if self.grow_food_tile and len(self.planted_food_list) <= len(self.grow_food_tile):
             if self.grow_food_tile:
                 if self.goto_plant_tile != None:
@@ -860,12 +862,15 @@ class Entity(object):
 
     def b_invite_friend_to_field(self):
         friends_without_field = [x for x in self.friends if x.grow_food_tile == []]
-        if friends_without_field:
+        if friends_without_field and self.grow_food_tile != []:
             f = friends_without_field[0]
             if f in self.tile.entities + utils.flatten([x.entities for x in self.tile.get_neighbours()]):
                 if f.grow_food_tile == []:
                     f.grow_food_tile = self.grow_food_tile
-                return True
+                    console.console.print("{} shared field with {}".format(self.name, f.name))
+                    return True
+                else:
+                    return False
             else:
                 self.goto_position(f.tile, state="GOTO FRIEND", state_short="GTFr")
                 return True
@@ -1049,8 +1054,9 @@ class BasicJob(Job):
         self.behaviours_by_priority.append(self.entity.b_search_and_mate)
         self.behaviours_by_priority.append(self.entity.b_form_community)
         self.behaviours_by_priority.append(self.entity.b_explore)
-        self.behaviours_by_priority.append(self.entity.b_plant_food)
+        self.behaviours_by_priority.append(self.entity.b_choose_field)
         self.behaviours_by_priority.append(self.entity.b_invite_friend_to_field)
+        self.behaviours_by_priority.append(self.entity.b_plant_food)
         self.behaviours_by_priority.append(self.entity.b_idle)
         
 
@@ -1072,7 +1078,7 @@ class Food(object):
         self.biome = biome
 
         if self.biome in ["GRASS"]:
-            self.resource_max = np.random.randint(4, 8) * 240 + np.random.randint(0, 240)
+            self.resource_max = np.random.randint(8, 12) * 240 + np.random.randint(0, 240)
             self.resource_qtt = self.resource_max
             self.regrow_rate = (0.4 + np.random.random()*0.2)
         elif self.biome in ["HILL"]:
@@ -1136,7 +1142,7 @@ class ForestFood(Food):
     def __init__(self, simu, tile, biome):
         super(ForestFood, self).__init__(simu, tile, biome)
 
-        self.resource_max = np.random.randint(1, 2) * 240 + np.random.randint(0, 240)
+        self.resource_max = np.random.randint(2, 3) * 240 + np.random.randint(0, 240)
         self.resource_qtt = 1
         self.regrow_rate = (1.0 + np.random.random()*0.5)
 
@@ -1159,35 +1165,9 @@ class PlantedFood(Food):
         self.resource_qtt = 1
         self.regrow_rate = (1.2 + np.random.random()*0.6)
 
-        self.lifespan = 240 * np.random.randint(10, 16) + np.random.randint(1, 240)*np.random.randint(1, 30)
+        self.lifespan = 240 * np.random.randint(4, 10) + np.random.randint(1, 240)*np.random.randint(1, 30)
 
         self.available = False
-
-    # def update(self):
-    #     if self.act_tck_cnt >= p.sim_params["ACTION_TICK"]:
-    #         self.act_tck_cnt = 0
-
-    #         if self.resource_qtt <= 0:
-    #             self.available = False
-    #             self.dead = True
-
-    #         if self.dead:
-    #             self.resource_qtt = 0
-    #             self.available = False
-    #             self.dead = True
-    #             self.tile.set_food(None)
-    #             self.creator.planted_food_list.remove(self)
-
-    #         self.lifespan -= 1
-    #         if self.lifespan > 0:
-    #             self.resource_qtt = min(self.resource_max, self.resource_qtt+self.regrow_rate)
-    #         else:
-    #             self.resource_qtt = min(self.resource_max, self.resource_qtt-(self.regrow_rate/2))
-
-    #         if not self.available and self.resource_qtt == self.resource_max:#> self.resource_max*0.95:
-    #             self.available = True
-    #     else:
-    #         self.act_tck_cnt += 1
 
 
 

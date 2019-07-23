@@ -242,7 +242,7 @@ def main():
                                                                 round(selected.thirst/selected.thirst_max*100, 1),
                                                                 selected.state)
 
-            ent_txt_stats = "Str {} Con {}".format(selected.stats_raw["STRENGTH"], selected.stats_raw["CONSTITUTION"])
+            ent_txt_stats = "Str {} Dex {} Con {}".format(selected.stats_raw["STRENGTH"], selected.stats_raw["DEXTERITY"], selected.stats_raw["CONSTITUTION"])
 
             if len(selected.inventory) > 0:
                 ent_txt2 = "   "
@@ -402,8 +402,9 @@ def main():
                 txt_lines[index] = _txt
             index += 1
 
-            _txt= "Avg. stats: Str {} Con {}".format(
+            _txt= "Avg. stats: Str {} Dex {} Con {}".format(
                                                 round(np.mean([e.stats_raw["STRENGTH"] for e in simu.entities]), 1),
+                                                round(np.mean([e.stats_raw["DEXTERITY"] for e in simu.entities]), 1),
                                                 round(np.mean([e.stats_raw["CONSTITUTION"] for e in simu.entities]), 1)
                                                 )
 
