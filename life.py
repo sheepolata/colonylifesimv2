@@ -21,6 +21,8 @@ class Community(object):
         
         self.members = [self.chief]
 
+        self.fields = []
+
 
     def update(self):
         if self.chief.dead:
@@ -164,18 +166,6 @@ class Entity(object):
         self.community = None
 
         self.job = BasicJob(self)
-
-        # self.behaviours_by_priority = []
-        # self.behaviours_by_priority.append(self.b_drink)
-        # self.behaviours_by_priority.append(self.b_eat)
-        # self.behaviours_by_priority.append(self.b_collect_water)
-        # self.behaviours_by_priority.append(self.b_harvest_food)
-        # self.behaviours_by_priority.append(self.b_search_and_mate)
-        # self.behaviours_by_priority.append(self.b_form_community)
-        # self.behaviours_by_priority.append(self.b_explore)
-        # self.behaviours_by_priority.append(self.b_plant_food)
-        # self.behaviours_by_priority.append(self.b_invite_friend_to_field)
-        # self.behaviours_by_priority.append(self.b_idle)
 
     def update(self):
         if self.act_tck_cnt >= p.sim_params["ACTION_TICK"]:
