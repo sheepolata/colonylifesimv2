@@ -435,6 +435,7 @@ class Grid(object):
                 if not _c.is_river:
                     _c.is_river = True
                     new_river_tiles.append(_c)
+
         for r in new_river_tiles:
             self.river_tiles.append(r)
 

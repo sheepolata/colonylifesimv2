@@ -13,7 +13,7 @@ sim_params = {
     "ACTION_TICK"      : 5,
     "ACTION_TICK_BASE" : 5,
     "SOCIAL_FEATURES"  : 4,
-    "FRIEND_FOE_TRESH" : 1
+    "FRIEND_FOE_TRESH" : 3
 }
 
 type2cost = {

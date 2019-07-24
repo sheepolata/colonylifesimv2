@@ -313,10 +313,10 @@ class Entity(object):
             self.water_memory = _to_sort[:min(len(_to_sort), self.water_memory_max)]
 
         for k in self.relations:
-            if self.relations[k] > 0:
-                self.relations[k] -= p.sim_params["FRIEND_FOE_TRESH"]/500
-            else:
-                self.relations[k] += p.sim_params["FRIEND_FOE_TRESH"]/500
+            if self.relations[k] > 0 and self.relations[k] < p.sim_params["FRIEND_FOE_TRESH"]:
+                self.relations[k] -= p.sim_params["FRIEND_FOE_TRESH"]/100
+            elif self.relations[k] < 0 and self.relations[k] > -p.sim_params["FRIEND_FOE_TRESH"]:
+                self.relations[k] += p.sim_params["FRIEND_FOE_TRESH"]/100
 
 
         ent_sorted = self.get_closest_entities(self.get_visible_tiles(1))
@@ -409,6 +409,26 @@ class Entity(object):
         of_type.sort(key=key)
 
         return [e for tile in of_type for e in tile.entities]
+
+    def get_distance_to_closest_friend(self):
+        if not self.friends:
+            return float('inf')
+        to_sort = [f.tile.getXY() for f in self.friends]
+        def key(e):
+            return utils.distance2p(self.tile.getXY(), e)
+        to_sort.sort(key=key)
+
+        return key(to_sort[0])
+
+    def get_distance_to_closest_foe(self):
+        if not self.foes:
+            return float('inf')
+        to_sort = [f.tile.getXY() for f in self.foes]
+        def key(e):
+            return utils.distance2p(self.tile.getXY(), e)
+        to_sort.sort(key=key)
+
+        return key(to_sort[0])
 
     #return [include_self, exclude_self, unexplored_reachable_tiles, double_radius, double_radius_exclude]
     def compute_visible_tiles_step(self, index, costum=-1):
@@ -597,7 +617,7 @@ class Entity(object):
             else:
                 #choose random tile in friends direction, foes opposite direction or random
                 ok = False
-                if self.friends:
+                if self.friends and self.get_distance_to_closest_friend() > self.vision_radius:
                     choices = []
                     for i in range(len(self.friends)):
                         direction = utils.angle_from_points(self.tile.getXY(), np.random.choice(self.friends).tile.getXY())
@@ -614,7 +634,7 @@ class Entity(object):
                     if choices:
                         ok = True
                         self.goto_tile = np.random.choice(choices)
-                elif self.foes:
+                elif self.foes and self.get_distance_to_closest_foe() < self.vision_radius:
                     choices = []
                     for i in range(len(self.foes)):
                         direction = utils.angle_from_points(np.random.choice(self.foes).tile.getXY(), self.tile.getXY())
