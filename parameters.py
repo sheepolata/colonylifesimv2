@@ -49,7 +49,25 @@ type2color = {
     "FIELD"         : (255,255,0,255)
 }
 
+ENTITY_BASIC_COLOR = (255, 208, 42, 255)
+
+COMMUNITY_COLOR_INDEX = 0
+COMMUNITY_COLORS = [
+    (0, 255, 0, 255),
+    (0, 0, 255, 255),
+    (255, 140, 0, 255),
+    (255, 255, 240, 255),
+    (255, 20, 147, 255)
+]
+
 import numpy as np
+
+np.random.shuffle(COMMUNITY_COLORS)
+
+def get_next_community_color():
+    c = COMMUNITY_COLORS[COMMUNITY_COLOR_INDEX]
+    COMMUNITY_COLOR_INDEX += 1
+    return COMMUNITY_COLORS[c]
 
 class SocialFeature(object):
     """docstring for SocialFeature"""

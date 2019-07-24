@@ -85,7 +85,7 @@ def draw_entity(entity, surface, selected, alphasurf):
     global DEBUG
 
     pygame.draw.circle(surface, 
-                        entity.color, 
+                        entity.get_color(), 
                         entity.tile.middle, 
                         min(int(entity.tile.rect.w/2)-1, int(entity.tile.rect.h/2)-1),
                         0)

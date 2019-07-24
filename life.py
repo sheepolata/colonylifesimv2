@@ -20,6 +20,8 @@ class Community(object):
         self.simu.communities.append(self)
         self.name = name
         self.chief = chief
+
+        self.color = p.get_next_community_color()
         
         self.members = [self.chief]
 
@@ -123,9 +125,6 @@ class Entity(object):
         else:
             self.tile = np.random.choice(self.grid.grid[np.random.randint(0, len(self.grid.grid[0]))])
         self.tile.add_entity(self)
-
-
-        self.color = (255, 208, 42, 255)
 
         self.act_tck_cnt = 0
         self.chck_surrounding_tmr = 0
@@ -641,6 +640,17 @@ class Entity(object):
         console.console.print("{} ({}) mate with {} ({})".format(self.name, self.sex, other.name, other.sex))
         self.state = "MATE"
         self.work_left = np.random.randint(1, 9)
+
+        if other in self.relations:
+            self.relations[other] = 1.0
+        else:
+            self.relations[other] += 1.0
+    
+        if self in other.relations:
+            other.relations[self] = 1.0
+        else:
+            other.relations[self] += 1.0
+
         if self.sex != other.sex and (np.random.random() < 0.3 or forced_pregnancy):
             if self.sex == 'F' and not self.pregnant:
                 print("{} got pregnant!".format(self.name))
@@ -961,6 +971,12 @@ class Entity(object):
         self.stats_raw[stat] = value
         self.stats_norm[stat] = utils.normalise(self.stats_raw[stat], 0, 20)
         self.stats_bonus[stat] = self.stats_norm[stat]*2.0
+
+    def get_color(self):
+        if self.community == None:
+            return p.ENTITY_BASIC_COLOR
+        else:
+            return self.community.color
 
     #GLOBALS
     @staticmethod
