@@ -112,8 +112,8 @@ social_features_list = [
 ]
 
 all_traits = {
-    "LEADERSHIP"   : (["LEADER", "FOLLOWER"], [0.25, 0.75]),
-    "CURIOSITY"    : (["CURIOUS", "INDIFFERENT"], [0.35, 0.65]),
+    "LEADERSHIP"   : (["LEADER", "FOLLOWER"], [0.2, 0.8]),
+    "CURIOSITY"    : (["CURIOUS", "AVERAGE", "INDIFFERENT"], [0.25, 0.6, 0.15]),
     "STRENGTH"     : (["STRONG", "AVERAGE", "WEAK"], [0.3, 0.4, 0.3]),
     "INTELLIGENCE" : (["SMART", "AVERAGE", "DUMB"], [0.15, 0.7, 0.15])
 }

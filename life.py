@@ -14,9 +14,11 @@ import buildings
 
 class Community(object):
     """docstring for Community"""
-    def __init__(self, simu, chief):
+    def __init__(self, simu, name, chief):
         super(Community, self).__init__()
         self.simu = simu
+        self.simu.communities.append(self)
+        self.name = name
         self.chief = chief
         
         self.members = [self.chief]
@@ -33,14 +35,25 @@ class Community(object):
             self.chief = np.random.choice(self.members)
 
     def add_member(self, m):
+        m.grow_food_tile = self.fields
         self.members.append(m)
 
     def add_members(self, m_list):
         for m in m_list:
             self.add_member(m)
 
+    def rm_member(self, m):
+        if m in self.members:
+            m.grow_food_tile = []
+            self.members.remove(m)
+        else:
+            print("DEBUG: Community.rm_member(self, m): m ({}} is not a member".format(m.name))
+
     def set_chief(self, nc):
-        self.chief = nc
+        if nc in self.members:
+            self.chief = nc
+        else:
+            print("DEBUG: Community.set_chief(self, nc): nc ({}} is not a member".format(nc.name))
 
 
 
@@ -880,8 +893,26 @@ class Entity(object):
             return False
 
     def b_form_community(self):
-        #TODO
-        return False
+        if self.traits["LEADERSHIP"] == "LEADER" and self.community == None:
+            friends_without_community = [x for x in self.friends if x.community == None]
+            if len(friends_without_community) > 3:
+                total_fields = utils.flatten([x.grow_food_tile for x in friends_without_community])
+                self.community = Community(self.simu, "{}\'s community".format(self.name), self)
+                self.community.fields = total_fields
+
+                console.console.print("{} formed a community, {}!".format(self.name, self.community.name))
+
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    def b_invite_to_community(self):
+        pass
+
+    def b_join_community(self):
+        pass
 
     def set_name(self, name):
         self.all_names = name
