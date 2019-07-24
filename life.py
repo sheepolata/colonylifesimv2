@@ -586,22 +586,55 @@ class Entity(object):
         self.path = []
 
     def random_walk(self):
+        self.state = "IDLE"
+        self.state_short = "I"
         gath_places = [b for b in self.buildings if isinstance(b, buildings.GatheringPlace)]
         if gath_places and utils.distance2p(self.tile.getXY(), gath_places[0].tile.getXY()) > 25:
             self.goto_position(gath_places[0], state="BACKTOCAMP", state_short="GTGatPl")
         else:
             if self.goto_tile != None and self.goto_tile != self.tile:
-                self.state = "IDLE"
-                self.state_short = "I"
                 self.goto_position(self.goto_tile, state=self.state, state_short=self.state_short)
             else:
-                self.state = "THINK"
-                self.state_short = "Th"
-                #choose random tile
+                #choose random tile in friends direction, foes opposite direction or random
+                ok = False
+                if self.friends:
+                    choices = []
+                    for i in range(len(self.friends)):
+                        direction = utils.angle_from_points(self.tile.getXY(), np.random.choice(self.friends).tile.getXY())
+                        direction = utils.random_angle_in_direction(direction, 45)
+                        coord = utils.point_from_direction(self.tile.getXY(),
+                                                    np.random.randint(1, self.vision_radius/2),
+                                                    direction,
+                                                    as_int = True
+                                                )
+                        if not self.grid.out_of_bound(coord):
+                            # print("GT FRIEND", coord)
+                            if self.grid.get(coord).get_type() not in self.forbidden_tiles:
+                                choices.append( self.grid.get(coord) )
+                    if choices:
+                        ok = True
+                        self.goto_tile = np.random.choice(choices)
+                elif self.foes:
+                    choices = []
+                    for i in range(len(self.foes)):
+                        direction = utils.angle_from_points(np.random.choice(self.foes).tile.getXY(), self.tile.getXY())
+                        direction = utils.random_angle_in_direction(direction, 45)
+                        coord = utils.point_from_direction(self.tile.getXY(),
+                                                    np.random.randint(1, self.vision_radius/2),
+                                                    direction,
+                                                    as_int = True
+                                                )
+                        if not self.grid.out_of_bound(coord):
+                            # print("GT FOE", coord)
+                            if self.grid.get(coord).get_type() not in self.forbidden_tiles:
+                                choices.append( self.grid.get(coord) )
+                    if choices:
+                        ok = True
+                        self.goto_tile = np.random.choice(choices)
+            if not ok:
                 _tiles = self.get_visible_tiles(3)
                 if _tiles:
                     self.goto_tile = np.random.choice( _tiles )
-                    self.work_left = 1
 
     def explore(self, _tiles):
         self.state = "EXPLORE"
@@ -641,12 +674,12 @@ class Entity(object):
         self.state = "MATE"
         self.work_left = np.random.randint(1, 9)
 
-        if other in self.relations:
+        if other not in self.relations:
             self.relations[other] = 1.0
         else:
             self.relations[other] += 1.0
     
-        if self in other.relations:
+        if self not in other.relations:
             other.relations[self] = 1.0
         else:
             other.relations[self] += 1.0
@@ -934,7 +967,7 @@ class Entity(object):
                 self.community = Community(self.simu, "{}\'s community".format(self.name), self)
                 # self.community.update_fields(total_fields)
 
-                console.console.print("{} formed a community, {}!".format(self.name, self.community.name))
+                console.console.print("{} formed a community,\n{}!".format(self.name, self.community.name))
 
                 return True
             else:

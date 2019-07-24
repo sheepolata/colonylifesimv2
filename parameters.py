@@ -13,7 +13,7 @@ sim_params = {
     "ACTION_TICK"      : 5,
     "ACTION_TICK_BASE" : 5,
     "SOCIAL_FEATURES"  : 4,
-    "FRIEND_FOE_TRESH" : 5
+    "FRIEND_FOE_TRESH" : 1
 }
 
 type2cost = {
@@ -65,9 +65,10 @@ import numpy as np
 np.random.shuffle(COMMUNITY_COLORS)
 
 def get_next_community_color():
+    global COMMUNITY_COLOR_INDEX
     c = COMMUNITY_COLORS[COMMUNITY_COLOR_INDEX]
-    COMMUNITY_COLOR_INDEX += 1
-    return COMMUNITY_COLORS[c]
+    COMMUNITY_COLOR_INDEX = (COMMUNITY_COLOR_INDEX+1)%len(COMMUNITY_COLORS)
+    return c
 
 class SocialFeature(object):
     """docstring for SocialFeature"""

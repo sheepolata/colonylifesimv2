@@ -5,7 +5,7 @@ class Console(object):
     def __init__(self):
         super(Console, self).__init__()
         self.lines = []
-        self.max = 20
+        self.max = 15
         self.date = 0
 
     def update(self, date):

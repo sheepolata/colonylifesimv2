@@ -81,7 +81,7 @@ def point_from_direction(point, distance, direction, as_int=False):
         return (x1, y1)
 
 def angle_from_points(p1, p2):
-    angle = math.atan2(p1[1] - p2[1], p1[0] - p2[0])
+    angle = math.atan2(p2[1] - p1[1], p2[0] - p1[0])
     return angle * (180 / math.pi)
 
 def random_angle_in_direction(_dir, span):
