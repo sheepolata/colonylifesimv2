@@ -55,13 +55,24 @@ class Entity(object):
 
         self.social_vector = np.random.choice(p.social_features_list, p.sim_params["SOCIAL_FEATURES"], replace=False)
 
+        self.traits = {}
+        for k in p.all_traits:
+            self.traits[k] = np.random.choice(p.all_traits[k][0], p=p.all_traits[k][1])
+
+        # print(self.traits)
+
         self.stats_raw = {}
         self.stats_norm = {}
         self.stats_bonus = {}
 
-        self.set_stat("STRENGTH"    , np.random.randint(6, 19))
-        self.set_stat("CONSTITUTION", np.random.randint(6, 19))
-        self.set_stat("DEXTERITY", np.random.randint(6, 19))
+        self.set_stat("STRENGTH"    , np.random.randint(8, 15))
+        if self.traits["STRENGTH"] == "STRONG":
+            self.set_stat("STRENGTH", self.stats_raw["STRENGTH"] + 2)
+        elif self.traits["STRENGTH"] == "WEAK":
+            self.set_stat("STRENGTH", self.stats_raw["STRENGTH"] - 2)
+
+        self.set_stat("CONSTITUTION", np.random.randint(8, 15))
+        self.set_stat("DEXTERITY", np.random.randint(8, 15))
 
         self.all_names = name
         self.name = self.all_names[0] + " " + (self.all_names[1][0] + ". " if self.all_names[1] != "" else "") + self.all_names[2]
@@ -77,7 +88,8 @@ class Entity(object):
         self.total_reachable_tiles = len([t for t in self.simu.grid.get_tile_1D_list() if t.get_type() not in self.forbidden_tiles+["SHALLOW_WATER"]])
         self.exploration_satistaction = int(self.total_reachable_tiles * (0.25 + (np.random.random() * 0.25)))
         
-        if "CURIOSITY" in [x.feature for x in self.social_vector]:
+        # if "CURIOSITY" in [x.feature for x in self.social_vector]:
+        if self.traits["CURIOSITY"] == "CURIOUS":
             self.exploration_satistaction = min(self.exploration_satistaction*1.25, self.total_reachable_tiles)
         
         self.visible_tiles = [[], [], [], [], []]

@@ -108,6 +108,12 @@ social_features_list = [
 
     SocialFeature("DILIGENCE", ["HOSPITALITY", "AGITATION"], ["APATHY", "TOLERANCE", "PATIENCE", "   INDIFFERENCE"]),
 
-    SocialFeature("APATHY", ["GREED", "NEGLECT", "INDIFFERENCE"], ["DILIGENCE", "PATIENCE", "AGITATION", "UNDERSTANDING", "CURIOSITY"])
-
+    SocialFeature("APATHY", ["GREED", "NEGLECT", "INDIFFERENCE"], ["DILIGENCE", "PATIENCE", "AGITATION", "UNDERSTANDING", "CURIOSITY"]),
 ]
+
+all_traits = {
+    "LEADERSHIP"   : (["LEADER", "FOLLOWER"], [0.25, 0.75]),
+    "CURIOSITY"    : (["CURIOUS", "INDIFFERENT"], [0.35, 0.65]),
+    "STRENGTH"     : (["STRONG", "AVERAGE", "WEAK"], [0.3, 0.4, 0.3]),
+    "INTELLIGENCE" : (["SMART", "AVERAGE", "DUMB"], [0.15, 0.7, 0.15])
+}
