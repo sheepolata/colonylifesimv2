@@ -36,11 +36,17 @@ class Community(object):
 
     def add_member(self, m):
         m.grow_food_tile = self.fields
+        m.community = self
         self.members.append(m)
 
     def add_members(self, m_list):
         for m in m_list:
             self.add_member(m)
+
+    def update_fields(self, new_fields):
+        self.fields = new_fields
+        for m in self.members:
+            m.grow_food_tile = self.fields
 
     def rm_member(self, m):
         if m in self.members:
@@ -895,10 +901,10 @@ class Entity(object):
     def b_form_community(self):
         if self.traits["LEADERSHIP"] == "LEADER" and self.community == None:
             friends_without_community = [x for x in self.friends if x.community == None]
-            if len(friends_without_community) > 3:
+            if len(friends_without_community) > 1:
                 total_fields = utils.flatten([x.grow_food_tile for x in friends_without_community])
                 self.community = Community(self.simu, "{}\'s community".format(self.name), self)
-                self.community.fields = total_fields
+                self.community.update_fields(total_fields)
 
                 console.console.print("{} formed a community, {}!".format(self.name, self.community.name))
 
@@ -909,7 +915,22 @@ class Entity(object):
             return False
 
     def b_invite_to_community(self):
-        pass
+        if self.community == None:
+            return False
+        else:
+            friends_without_community = [x for x in self.friends if x.community == None]
+            if friends_without_community:
+                f = friends_without_community[0]
+                if f in self.tile.entities + utils.flatten([x.entities for x in self.tile.get_neighbours()]):
+                    if f.community == None:
+                        self.community.add_member(f)
+                        console.console.print("{} invited {}\n        to {} community, {}".format(self.name, f.name, "her" if self.sex=="F" else "his", self.community.name))
+                        return True
+                    else:
+                        return False
+                else:
+                    self.goto_position(f.tile, state="GOTO FRIEND", state_short="GTFr")
+                    return True
 
     def b_join_community(self):
         pass
@@ -1085,11 +1106,12 @@ class BasicJob(Job):
         self.behaviours_by_priority.append(self.entity.b_collect_water)
         self.behaviours_by_priority.append(self.entity.b_harvest_food)
         self.behaviours_by_priority.append(self.entity.b_search_and_mate)
-        self.behaviours_by_priority.append(self.entity.b_form_community)
-        self.behaviours_by_priority.append(self.entity.b_explore)
         self.behaviours_by_priority.append(self.entity.b_choose_field)
         self.behaviours_by_priority.append(self.entity.b_invite_friend_to_field)
+        self.behaviours_by_priority.append(self.entity.b_form_community)
+        self.behaviours_by_priority.append(self.entity.b_invite_to_community)
         self.behaviours_by_priority.append(self.entity.b_plant_food)
+        self.behaviours_by_priority.append(self.entity.b_explore)
         self.behaviours_by_priority.append(self.entity.b_idle)
         
 

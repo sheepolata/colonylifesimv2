@@ -232,9 +232,14 @@ def main():
                                                 selected.age,
                                                 selected.job.name.lower())
 
-            ent_txt_social = "Social feats: "
+            ent_txt_social = "    Social feats: "
             for i, sf in enumerate(selected.social_vector):
                 ent_txt_social += sf.feature.lower() + (", " if i < len(selected.social_vector) else "")
+
+            ent_txt_trait = "    "
+            for k in selected.traits:
+                ent_txt_trait += "{}: {}, ".format(k.lower()[0:3], selected.traits[k].lower()[0:3])
+            ent_txt_trait = ent_txt_trait[:-2]
 
             
             ent_txt1 = "HP {}/{}, Food {}%, Thrist {}% {}".format(round(selected.health,1), selected.health_max,
@@ -242,10 +247,10 @@ def main():
                                                                 round(selected.thirst/selected.thirst_max*100, 1),
                                                                 selected.state)
 
-            ent_txt_stats = "Str {} Dex {} Con {}".format(selected.stats_raw["STRENGTH"], selected.stats_raw["DEXTERITY"], selected.stats_raw["CONSTITUTION"])
+            ent_txt_stats = "    Str {} Dex {} Con {}".format(selected.stats_raw["STRENGTH"], selected.stats_raw["DEXTERITY"], selected.stats_raw["CONSTITUTION"])
 
             if len(selected.inventory) > 0:
-                ent_txt2 = "   "
+                ent_txt2 = "    "
             else:
                 ent_txt2 = ""
             for k in selected.inventory:
@@ -256,15 +261,13 @@ def main():
                 else:
                     ent_txt2 += "{}:{} ".format(k, selected.inventory[k])
 
-            if selected.friends or selected.foes:
-                ent_txt3 = "   Frds: {} Foes: {}".format(len(selected.friends), len(selected.foes))
-            else:
-                ent_txt3 = ""
+            ent_txt3 = "    Frds: {} Foes: {}".format(len(selected.friends), len(selected.foes))
 
-            ent_txt4 = "Expl. Satisfaction: {}%".format(round((len(selected.known_tiles)/selected.exploration_satistaction)*100, 1))
+            ent_txt4 = "    Expl. Satisfaction: {}%".format(round((len(selected.known_tiles)/selected.exploration_satistaction)*100, 1))
         else:
             ent_txt0 = ""
             ent_txt_social = ""
+            ent_txt_trait = ""
             ent_txt1 = ""
             ent_txt_stats = ""
             ent_txt2 = ""
@@ -279,6 +282,11 @@ def main():
             changed = True
             txt_lines[index] = ent_txt_social
         index += 1
+        if txt_lines[index] != ent_txt_trait:
+            changed = True
+            txt_lines[index] = ent_txt_trait
+        index += 1
+
         if txt_lines[index] != ent_txt1:
             changed = True
             txt_lines[index] = ent_txt1
@@ -408,6 +416,24 @@ def main():
                                                 round(np.mean([e.stats_raw["CONSTITUTION"] for e in simu.entities]), 1)
                                                 )
 
+            if txt_lines[index] != _txt:
+                changed = True
+                txt_lines[index] = _txt
+            index += 1
+
+            d = {}
+            for e in simu.entities:
+                for k in e.traits.values():
+                    if k == "AVERAGE" or k == "FOLLOWER":
+                        continue
+                    if k.lower()[0:3] not in d:
+                        d[k.lower()[0:3]] = 1
+                    else:
+                        d[k.lower()[0:3]] += 1
+            _sum = len(simu.entities)
+            _txt = ""
+            for k in d:
+                _txt += ("{}:{}% ".format(k, round((d[k]/_sum)*100)))
             if txt_lines[index] != _txt:
                 changed = True
                 txt_lines[index] = _txt
