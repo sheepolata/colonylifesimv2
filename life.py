@@ -48,6 +48,11 @@ class Community(object):
         for m in self.members:
             m.grow_food_tile = self.fields
 
+    def add_fields(self, new_fields):
+        for f in new_fields:
+            if f not in self.fields:
+                self.fields.append(f)
+
     def rm_member(self, m):
         if m in self.members:
             m.grow_food_tile = []
@@ -308,6 +313,13 @@ class Entity(object):
 
             self.water_memory = _to_sort[:min(len(_to_sort), self.water_memory_max)]
 
+        for k in self.relations:
+            if self.relations[k] > 0:
+                self.relations[k] -= p.sim_params["FRIEND_FOE_TRESH"]/500
+            else:
+                self.relations[k] += p.sim_params["FRIEND_FOE_TRESH"]/500
+
+
         ent_sorted = self.get_closest_entities(self.get_visible_tiles(1))
         for e in ent_sorted:
             if e == self:
@@ -323,38 +335,42 @@ class Entity(object):
                 if e == self:
                     continue
                 if fr not in self.relations:
-                    self.relations[fr] = 0.0
-                self.relations[fr] += 0.01
+                    self.relations[fr] = p.sim_params["FRIEND_FOE_TRESH"]/100
+                self.relations[fr] += p.sim_params["FRIEND_FOE_TRESH"]/100
             for fr in e.foes:
                 if e == self:
                     continue
                 if fr not in self.relations:
-                    self.relations[fr] = 0.0
-                self.relations[fr] -= 0.01
+                    self.relations[fr] = -p.sim_params["FRIEND_FOE_TRESH"]/100
+                self.relations[fr] -= p.sim_params["FRIEND_FOE_TRESH"]/100
         for e in self.foes:
             for fr in e.friends:
                 if e == self:
                     continue
                 if fr not in self.relations:
-                    self.relations[fr] = 0.0
-                self.relations[fr] -= 0.01
+                    self.relations[fr] = -p.sim_params["FRIEND_FOE_TRESH"]/100
+                self.relations[fr] -= p.sim_params["FRIEND_FOE_TRESH"]/100
             for fr in e.foes:
                 if e == self:
                     continue
                 if fr not in self.relations:
-                    self.relations[fr] = 0.0
-                self.relations[fr] += 0.01
+                    self.relations[fr] = p.sim_params["FRIEND_FOE_TRESH"]/100
+                self.relations[fr] += p.sim_params["FRIEND_FOE_TRESH"]/100
 
         for e in self.relations:
             if e not in self.friends and e not in self.foes:
                 if self.relations[e] > p.sim_params["FRIEND_FOE_TRESH"]:
                     self.friends.append(e)
+                    console.console.print("{} and {} are friends!".format(self.name, e.name))
                 elif self.relations[e] < -p.sim_params["FRIEND_FOE_TRESH"]:
                     self.foes.append(e)
+                    console.console.print("{} and {} are foes!".format(self.name, e.name))
             elif e in self.friends and self.relations[e] <= p.sim_params["FRIEND_FOE_TRESH"]:
                 self.friends.remove(e)
+                console.console.print("{} and {} are not friends anymore!".format(self.name, e.name))
             elif e in self.foes and self.relations[e] >= -p.sim_params["FRIEND_FOE_TRESH"]:
                 self.foes.remove(e)
+                console.console.print("{} and {} are not foes anymore!".format(self.name, e.name))
 
         self.friends = [x for x in self.friends if not x.dead]
         self.foes = [x for x in self.foes if not x.dead]
@@ -550,8 +566,8 @@ class Entity(object):
             #Follow path
             self.move_to(self.path[0])
             self.path = self.path[1:]
-            # if self.tile == _tile or self.path == []:
-            if self.tile in _tile.get_neighbours() or self.tile == _tile or self.path == []:
+            if self.tile == _tile or self.path == []:
+            # if self.tile in _tile.get_neighbours() or self.tile == _tile or self.path == []:
                 #destination reached
                 self.reset_path()
                 return True
@@ -670,6 +686,8 @@ class Entity(object):
         child.set_name(name)
 
         child.parents = (self, self.child_other_parent)
+        child.parents[0].relations[child] = p.sim_params["FRIEND_FOE_TRESH"]*1.1
+        child.parents[1].relations[child] = p.sim_params["FRIEND_FOE_TRESH"]*1.1
 
         self.pregnant = False
 
@@ -904,7 +922,7 @@ class Entity(object):
             if len(friends_without_community) > 1:
                 total_fields = utils.flatten([x.grow_food_tile for x in friends_without_community])
                 self.community = Community(self.simu, "{}\'s community".format(self.name), self)
-                self.community.update_fields(total_fields)
+                # self.community.update_fields(total_fields)
 
                 console.console.print("{} formed a community, {}!".format(self.name, self.community.name))
 
@@ -924,7 +942,7 @@ class Entity(object):
                 if f in self.tile.entities + utils.flatten([x.entities for x in self.tile.get_neighbours()]):
                     if f.community == None:
                         self.community.add_member(f)
-                        console.console.print("{} invited {}\n        to {} community, {}".format(self.name, f.name, "her" if self.sex=="F" else "his", self.community.name))
+                        console.console.print("{} invited {} to {} community,\n{}".format(self.name, f.name, "her" if self.sex=="F" else "his", self.community.name))
                         return True
                     else:
                         return False
