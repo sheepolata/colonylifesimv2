@@ -631,10 +631,10 @@ class Entity(object):
                     if choices:
                         ok = True
                         self.goto_tile = np.random.choice(choices)
-            if not ok:
-                _tiles = self.get_visible_tiles(3)
-                if _tiles:
-                    self.goto_tile = np.random.choice( _tiles )
+                if not ok:
+                    _tiles = self.get_visible_tiles(3)
+                    if _tiles:
+                        self.goto_tile = np.random.choice( _tiles )
 
     def explore(self, _tiles):
         self.state = "EXPLORE"

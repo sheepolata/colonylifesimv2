@@ -37,7 +37,7 @@ def main():
     info_surface       = pygame.Surface((info_surface_width, info_surface_height))
 
     #OBJECTS
-    simu = env.Simulation(p.parameters["GRID_W"], p.parameters["GRID_H"], nb_ent=20, nb_food=20, nb_river=2)
+    simu = env.Simulation(p.parameters["GRID_W"], p.parameters["GRID_H"], nb_ent=20, nb_food=20, nb_river=5)
 
     #VARS
     run = True

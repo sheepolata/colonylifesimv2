@@ -181,6 +181,9 @@ class Grid(object):
         else:
             return None
 
+    def is_border(self, coord):
+        return (coord[0] == 0 or coord[0] == self.width-1) or (coord[1] == 0 or coord[1] == self.height-1)
+
     def get_random_border(self):
         if np.random.random() < 0.5:
             _x = np.random.choice([0, self.width-1])
@@ -385,12 +388,12 @@ class Grid(object):
             return
         for i in range(nb_river):
             if _start == None:
-                start = np.random.choice([t for t in self.get_tiles_1D() if t.get_type() in ["MOUNTAIN"]])
+                start = np.random.choice([t for t in self.get_tiles_1D() if t.get_type() in ["MOUNTAIN"] or (self.is_border(t.getXY()) and t.get_type() not in ["SHALLOW_WATER", "DEEP_WATER"])])
             else:
                 start = _start
 
             if _end == None:
-                end = np.random.choice([t for t in self.get_tiles_1D() if t.get_type() in ["SHALLOW_WATER", "DEEP_WATER"]])
+                end = np.random.choice([t for t in self.get_tiles_1D() if t.get_type() in ["SHALLOW_WATER", "DEEP_WATER"] or (self.is_border(t.getXY()) and t.get_type() not in ["SHALLOW_WATER", "DEEP_WATER"])])
             else:
                 end = _end
 
