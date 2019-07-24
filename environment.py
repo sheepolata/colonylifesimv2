@@ -427,6 +427,18 @@ class Grid(object):
         
         self.river_tiles = utils.flatten(self.rivers_path)
 
+        new_river_tiles = []
+        for r in self.river_tiles:
+            if np.random.random() < 0.1:
+                _n = self.get_neighbours_of(r)
+                _c = _n[np.random.randint(0, len(_n))]
+                if not _c.is_river:
+                    _c.is_river = True
+                    new_river_tiles.append(_c)
+        for r in new_river_tiles:
+            self.river_tiles.append(r)
+
+
     def get_tiles_1D(self):
         array1D = []
         for x in range(self.width):
