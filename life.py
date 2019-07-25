@@ -1182,19 +1182,18 @@ class Job(object):
         self.name = "JOB"
         self.behaviours_by_priority = []
 
+        self.behaviours_by_priority.append(self.entity.b_drink)
+        self.behaviours_by_priority.append(self.entity.b_eat)
+        self.behaviours_by_priority.append(self.entity.b_collect_water)
+        self.behaviours_by_priority.append(self.entity.b_harvest_food)
+        self.behaviours_by_priority.append(self.entity.b_search_and_mate)
+
 class BasicJob(Job):
     """docstring for BasicJob"""
     def __init__(self, entity):
         super(BasicJob, self).__init__(entity)
         self.name = "BASIC JOB"
 
-        self.behaviours_by_priority = []
-
-        self.behaviours_by_priority.append(self.entity.b_drink)
-        self.behaviours_by_priority.append(self.entity.b_eat)
-        self.behaviours_by_priority.append(self.entity.b_collect_water)
-        self.behaviours_by_priority.append(self.entity.b_harvest_food)
-        self.behaviours_by_priority.append(self.entity.b_search_and_mate)
         self.behaviours_by_priority.append(self.entity.b_choose_field)
         self.behaviours_by_priority.append(self.entity.b_invite_friend_to_field)
         self.behaviours_by_priority.append(self.entity.b_form_community)
