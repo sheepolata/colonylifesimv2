@@ -585,7 +585,8 @@ class Entity(object):
             #Follow path
             self.move_to(self.path[0])
             self.path = self.path[1:]
-            if self.tile == _tile or self.path == []:
+
+            if self.tile == _tile:# or self.path == []:
             # if self.tile in _tile.get_neighbours() or self.tile == _tile or self.path == []:
                 #destination reached
                 self.reset_path()
@@ -898,12 +899,13 @@ class Entity(object):
         pass
 
     def b_choose_field(self):
+        # closest_mem_food = self.get_closest_foods(self.get_visible_tiles(0))
         if (not self.grow_food_tile 
             and len(self.known_tiles) > self.exploration_satistaction
-            # and len(self.food_memory) < 6
+            and len([f for f in self.food_memory if f.available]) < 3
             # and not (closest_mem_food and utils.distance2p(self.tile, closest_mem_food[0].tile) < 15)
-            and len(self.friends) > 3
-            # and not [fr for fr in self.friends if fr.grow_food_tile]
+            # and len(self.friends) > 3
+            and not [fr for fr in self.friends if fr.grow_food_tile]
             ):
 
             ts = [_t for _t in self.known_tiles if (_t.get_type()=="GRASS" and not _t.is_forest and not _t.is_river)]
@@ -982,7 +984,7 @@ class Entity(object):
     def b_form_community(self):
         if self.traits["LEADERSHIP"] == "LEADER" and self.community == None:
             friends_without_community = [x for x in self.friends if x.community == None]
-            if len(friends_without_community) > 1:
+            if len(friends_without_community) > 2:
                 total_fields = utils.flatten([x.grow_food_tile for x in friends_without_community])
                 self.community = Community(self.simu, "{}\'s community".format(self.name), self)
                 # self.community.update_fields(total_fields)

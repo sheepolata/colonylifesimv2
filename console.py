@@ -27,6 +27,6 @@ class Console(object):
 
         # self.lines.append(newline)
         if len(self.lines) > self.max:
-            self.lines = self.lines[1:]
+            self.lines = self.lines[-self.max:]
             
 console = Console()
