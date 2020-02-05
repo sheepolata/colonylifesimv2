@@ -6,6 +6,8 @@ import numpy as np
 import math
 import time
 
+import sys
+
 import parameters as p
 import environment as env
 import drawer
@@ -37,7 +39,7 @@ def main():
     info_surface       = pygame.Surface((info_surface_width, info_surface_height))
 
     #OBJECTS
-    simu = env.Simulation(p.parameters["GRID_W"], p.parameters["GRID_H"], nb_ent=20, nb_food=20, nb_river=2)
+    simu = env.Simulation(p.parameters["GRID_W"], p.parameters["GRID_H"], nb_ent=p.initial_params["nb_ent"], nb_food=p.initial_params["nb_food"], nb_river=p.initial_params["nb_river"])
 
     #VARS
     run = True
@@ -448,7 +450,13 @@ def main():
         # print("Avg friends: {} Avg Foes: {}\r".format(round(np.mean([len(e.friends) for e in simu.entities])/len(simu.entities), 2), round(np.mean([len(e.foes) for e in simu.entities])/len(simu.entities), 2)), end='', flush=True)
 
 
+
     print("END OF COLONY LIFE SIMULATION ! Ended in approx. {} hours".format( round((time.time() - t)/60/24, 2) ))
+
+    pygame.display.quit()
+    pygame.quit()
+    sys.exit()
+
 
 if __name__ == '__main__':
     main()

@@ -1,6 +1,7 @@
 import threading
 import math
 import numpy as np
+import time
 
 def get_sign(x):
     if x > 0:
@@ -96,3 +97,23 @@ def random_angle_in_direction(_dir, span):
 def flatten(l):
     flat_list = [item for sublist in l for item in sublist]
     return flat_list
+
+class LoopingThread(threading.Thread):
+    """docstring for LoopingThread"""
+    def __init__(self, target=None, freq=200):
+        super(LoopingThread, self).__init__()
+        self.target = target
+        self.freq = freq
+        self._stop = False
+
+    def run(self):
+        if self.target == None:
+            self.join()
+            return
+
+        while not self._stop:
+            self.target()
+            time.sleep(self.freq/1000.0)
+
+    def stop(self):
+        self._stop = True

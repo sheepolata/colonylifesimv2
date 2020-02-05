@@ -9,6 +9,12 @@ parameters = {
     "GRID_H"           : 100
 }
 
+initial_params = {
+    "nb_ent"    :20, 
+    "nb_food"   :20,
+     "nb_river" :2
+}
+
 sim_params = {
     "ACTION_TICK"      : 5,
     "ACTION_TICK_BASE" : 5,
