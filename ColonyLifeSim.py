@@ -22,7 +22,9 @@ def main():
     clock = pygame.time.Clock()
 
     screen_width, screen_height = p.parameters["SCREEN_WIDTH"], p.parameters["SCREEN_HEIGHT"]
+    #TODO Calculate automatically surfaces size from SCREEN_W/H and remove it from hardcoded values in parameters
     main_surface_width, main_surface_height = p.parameters["MAINW_WIDTH"], p.parameters["MAINW_HEIGHT"]
+
     info_surface_width, info_surface_height = p.parameters["INFO_SURF_WIDTH"], p.parameters["INFO_SURF_HEIGHT"]
 
     os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % ((monitor.width/2)-(screen_width/2),(monitor.height/2)-(screen_height/2))
