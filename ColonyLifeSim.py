@@ -374,7 +374,7 @@ def main():
                 txt_lines[index] = _txt
             index += 1
 
-            _txt = "With child: {}, due in {} days".format(len([e for e in simu.entities if e.pregnant]), [round(e.gestation/240,1) for e in simu.entities if e.pregnant])
+            _txt = "With child: {}, due in {} days".format(len([e for e in simu.entities if e.pregnant]), np.sort([round(e.gestation/240,1) for e in simu.entities if e.pregnant]))
             if txt_lines[index] != _txt:
                 changed = True
                 txt_lines[index] = _txt
