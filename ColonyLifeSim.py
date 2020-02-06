@@ -445,7 +445,10 @@ def main():
 
         #UPDATE DISPLAY
         # pygame.display.flip()
-        pygame.display.update()
+            pygame.display.update()
+        else:
+            if tick == 0:
+                print(round(np.mean(fps_mean)))
 
         # print("Avg friends: {} Avg Foes: {}\r".format(round(np.mean([len(e.friends) for e in simu.entities])/len(simu.entities), 2), round(np.mean([len(e.foes) for e in simu.entities])/len(simu.entities), 2)), end='', flush=True)
 

@@ -1179,8 +1179,7 @@ class GatheringPlace(Building):
         self.name = "GatheringPlace"
         self.image = pygame.image.load("./data/images/fireplace.png")
 
-        
-        
+
 if __name__ == '__main__':
     e = Entity(env.Grid(p.parameters["GRID_W"], p.parameters["GRID_H"]))
 

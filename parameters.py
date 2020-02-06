@@ -55,11 +55,21 @@ type2color = {
     "FIELD"         : (255,255,0,255)
 }
 
-socialfeats_factors = {
+social_feats_factors = {
     "if_equal"    : 1.0,
     "if_closeto"  : 0.75,
     "if_awayfrom" : -1.75/2,
     "if_random"   : 0.25
+}
+
+all_dict = {
+    "parameters"          : [parameters         , "num"  ],
+    "initial_params"      : [initial_params     , "num"  ],
+    "sim_params"          : [sim_params         , "num"  ],
+    "type2cost"           : [type2cost          , "num"  ],
+    "type2cost_river"     : [type2cost_river    , "num"  ],
+    "type2color"          : [type2color         , "color"],
+    "social_feats_factors" : [social_feats_factors, "num"  ]
 }
 
 import numpy as np
@@ -74,13 +84,13 @@ class SocialFeature(object):
 
     def similarity(self, social_feature):
         if social_feature.feature == self.feature:
-            return socialfeats_factors["if_equal"]
+            return social_feats_factors["if_equal"]
         elif social_feature.feature in self.close_to:
-            return socialfeats_factors["if_closeto"]
+            return social_feats_factors["if_closeto"]
         elif social_feature.feature in self.away_from:
-            return socialfeats_factors["if_awayfrom"]
+            return social_feats_factors["if_awayfrom"]
         else:
-            return np.random.choice([-socialfeats_factors["if_random"], socialfeats_factors["if_random"]])
+            return np.random.choice([-social_feats_factors["if_random"], social_feats_factors["if_random"]])
 
     @staticmethod
     def list_similatiry(l1, l2):
