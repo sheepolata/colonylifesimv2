@@ -7,7 +7,7 @@ import re
 import utils
 import ColonyLifeSim
 import parameters as p
-        
+
 
 class ParamSetupGUI(Frame):
     """docstring for ParamSetupGUI"""
