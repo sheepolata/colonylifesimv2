@@ -3,6 +3,7 @@ from tkinter import ttk
 
 import utils
 import ColonyLifeSim
+import parameters as p
 
 class ParamSetupGUI(Frame):
     """docstring for ParamSetupGUI"""
@@ -11,7 +12,7 @@ class ParamSetupGUI(Frame):
 
         self.parent = parent
 
-        self.ui_elements = []
+        self.numerical_entries = []
 
         self.update_thread = utils.LoopingThread(target=self.update)
 
@@ -23,20 +24,85 @@ class ParamSetupGUI(Frame):
         self.master.title("Colony Life Setup")
         self.pack(fill=BOTH, expand=True)
 
-        _column = 0
-        _row    = 0
+        self._column = 0
+        self._row    = -1
 
-        _column = 0; _row += 1;
+        self.add_dict_number_values_to_gui_as_line(p.parameters, "parameters")
+        self.add_dict_number_values_to_gui_as_line(p.initial_params, "initial_params")
+        self.add_dict_number_values_to_gui_as_line(p.sim_params, "sim_params")
+        self.add_dict_number_values_to_gui_as_line(p.type2cost, "type2cost")
+        self.add_dict_number_values_to_gui_as_line(p.type2cost_river, "type2cost_river")
+
+        self.add_dict_colour_values_to_gui_as_line(p.type2color, "type2color")
+
+        self.add_dict_number_values_to_gui_as_line(p.socialfeats_factors, "socialfeats_factors")
+
+        self._column = 0; self._row += 1;
         self.submit_button = Button(self, text="Launch!", command=self.run_app)
-        self.ui_elements.append(self.submit_button)
-        self.submit_button.grid(column=_column, row=_row, columnspan=6)
+        self.submit_button.grid(column=self._column, row=self._row, columnspan=1)
+
+    def add_dict_number_values_to_gui_as_line(self, _dict, dict_name):
+        self._column = 0; self._row += 1;
+
+        """
+        from Tkinter import *
+        from ttk import *
+
+        def on_field_change(index, value, op):
+            print "combobox updated to ", c.get()
+
+        root = Tk()
+        v = StringVar()
+        v.trace('w',on_field_change)
+        c = Combobox(root, textvar=v, values=["foo", "bar", "baz"])
+        c.pack()
+
+        mainloop()
+        """
+
+        lbl1 = Label(self, text=dict_name + "[")
+        cbb  = ttk.Combobox(self, values=list(_dict.keys()))
+        cbb.set(list(_dict.keys())[0])
+        lbl2 = Label(self, text="]  =  ")
+        ent  = Entry(self)
+        self.numerical_entries.append([_dict, cbb, ent])
+
+        lbl1.grid(column=self._column, row=self._row, pady=6, sticky=E); self._column += 1;
+        cbb .grid(column=self._column, row=self._row, pady=6);           self._column += 1;
+        lbl2.grid(column=self._column, row=self._row, pady=6);           self._column += 1;
+        ent .grid(column=self._column, row=self._row, pady=6);           self._column += 1;
+
+    def add_dict_colour_values_to_gui_as_line(self, _dict, dict_name):
+        pass
 
     def update(self):
         super(ParamSetupGUI, self).update()
 
-    def run_app(self):
+        try:
+            w = self.parent.focus_get()
+            for _dict, combo, entry in self.numerical_entries:
+                if not w is entry:
+                    entry.delete(0, END)
+                    entry.insert(END, _dict[combo.get()])
+                else:
+                    if type(_dict[combo.get()]) is int:
+                        if _dict[combo.get()] != int(entry.get()):
+                            _dict[combo.get()] = int(entry.get())
+                    elif type(_dict[combo.get()]) is float:
+                        if _dict[combo.get()] != float(entry.get()):
+                            _dict[combo.get()] = float(entry.get())
+        except:
+            pass
 
+            
+
+    def destroy(self):
+        del self.numerical_entries[:]
         self.update_thread.stop()
+        super(ParamSetupGUI, self).destroy()
+
+    def run_app(self):
+        self.destroy()
         self.parent.destroy()
 
         ColonyLifeSim.main()
@@ -54,6 +120,13 @@ def main():
     main_window.resizable(False, False)
 
     app = ParamSetupGUI(main_window)
+
+    def on_closing():
+        app.destroy()
+        main_window.destroy()
+
+    main_window.protocol("WM_DELETE_WINDOW", on_closing)
+
 
     main_window.mainloop()
 

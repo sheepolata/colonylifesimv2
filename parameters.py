@@ -10,9 +10,9 @@ parameters = {
 }
 
 initial_params = {
-    "nb_ent"    :20, 
-    "nb_food"   :20,
-     "nb_river" :2
+    "nb_ent"    : 20, 
+    "nb_food"   : 20,
+     "nb_river" : 2
 }
 
 sim_params = {
@@ -55,6 +55,13 @@ type2color = {
     "FIELD"         : (255,255,0,255)
 }
 
+socialfeats_factors = {
+    "if_equal"    : 1.0,
+    "if_closeto"  : 0.75,
+    "if_awayfrom" : -1.75/2,
+    "if_random"   : 0.25
+}
+
 import numpy as np
 
 class SocialFeature(object):
@@ -67,13 +74,13 @@ class SocialFeature(object):
 
     def similarity(self, social_feature):
         if social_feature.feature == self.feature:
-            return 1.0
+            return socialfeats_factors["if_equal"]
         elif social_feature.feature in self.close_to:
-            return 0.75
+            return socialfeats_factors["if_closeto"]
         elif social_feature.feature in self.away_from:
-            return -1.75/2
+            return socialfeats_factors["if_awayfrom"]
         else:
-            return np.random.choice([-0.25, 0.25])
+            return np.random.choice([-socialfeats_factors["if_random"], socialfeats_factors["if_random"]])
 
     @staticmethod
     def list_similatiry(l1, l2):
