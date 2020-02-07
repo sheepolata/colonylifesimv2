@@ -436,7 +436,8 @@ class Tile(object):
         self.y = y
         self.grid = grid
 
-        mainw_width, mainw_height = p.parameters["MAINW_WIDTH"], p.parameters["MAINW_HEIGHT"]
+        mainw_width, mainw_height = p.parameters["MAIN_WIN_WH"], p.parameters["SCREEN_HEIGHT"]
+
         topleft = ((x * (mainw_width/self.grid.width)), (y * (mainw_height/self.grid.height)))
         self.rect = pygame.Rect(topleft, (math.ceil(mainw_width/self.grid.width), math.ceil(mainw_height/self.grid.height)))
         bottomright = (topleft[0] + (mainw_width/self.grid.width), topleft[1] + (mainw_height/self.grid.height))

@@ -4,7 +4,7 @@ import math
 import numpy as np
 import utils
 
-mainw_width, mainw_height = p.parameters["MAINW_WIDTH"], p.parameters["MAINW_HEIGHT"]
+# mainw_width, mainw_height = p.parameters["MAINW_WIDTH"], p.parameters["MAINW_HEIGHT"]
 DEBUG = False
 DEBUG_SWITCHED = False
 

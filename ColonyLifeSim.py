@@ -21,11 +21,31 @@ def main():
     monitor = get_monitors()[0]
     clock = pygame.time.Clock()
 
+    if ( p.parameters["SCREEN_PERCENT"] > 0.0 and p.parameters["SCREEN_PERCENT"] <= 1.0 ):
+        p.parameters["SCREEN_WIDTH"]  = int(monitor.width  * p.parameters["SCREEN_PERCENT"])
+        p.parameters["SCREEN_HEIGHT"] = int(monitor.height * p.parameters["SCREEN_PERCENT"])
+
+    if ( p.parameters["MAIN_WIN_RATIO"] <= 0.0 or p.parameters["MAIN_WIN_RATIO"] > 1.0 ):
+        p.parameters["MAIN_WIN_RATIO"]  = 0.625
+
+    p.parameters["MAIN_WIN_WH"] = int(p.parameters["MAIN_WIN_RATIO"] * p.parameters["SCREEN_WIDTH"])
+
     screen_width, screen_height = p.parameters["SCREEN_WIDTH"], p.parameters["SCREEN_HEIGHT"]
     #TODO Calculate automatically surfaces size from SCREEN_W/H and remove it from hardcoded values in parameters
-    main_surface_width, main_surface_height = p.parameters["MAINW_WIDTH"], p.parameters["MAINW_HEIGHT"]
+    main_surface_width, main_surface_height = p.parameters["MAIN_WIN_WH"], p.parameters["SCREEN_HEIGHT"]
 
-    info_surface_width, info_surface_height = p.parameters["INFO_SURF_WIDTH"], p.parameters["INFO_SURF_HEIGHT"]
+    info_surface_width, info_surface_height = p.parameters["SCREEN_WIDTH"] - p.parameters["MAIN_WIN_WH"], p.parameters["SCREEN_HEIGHT"]
+
+    """
+    "SCREEN_WIDTH"     : 1440,
+    "SCREEN_HEIGHT"    : 900,
+    "MAINW_WIDTH"      : 900, # "SCREEN_HEIGHT"
+    "MAINW_HEIGHT"     : 900, # "SCREEN_HEIGHT"
+    "INFO_SURF_WIDTH"  : 1440-900, # "SCREEN_WIDTH" - "SCREEN_HEIGHT"
+    "INFO_SURF_HEIGHT" : 900, # "SCREEN_HEIGHT"
+    "GRID_W"           : 100,
+    "GRID_H"           : 100
+    """
 
     os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % ((monitor.width/2)-(screen_width/2),(monitor.height/2)-(screen_height/2))
     
@@ -49,6 +69,13 @@ def main():
     pause = False
     fast = False
     displ_all_ents = False
+
+    refresh_counter_txt     = 0
+    refresh_counter_txt_max = 10
+    refresh_counter_drw     = 0
+    refresh_counter_drw_max = 30
+    refresh_counter_blt     = 0
+    refresh_counter_blt_max = 30
 
     txt_lines = []
     for i in range(100):
@@ -159,11 +186,17 @@ def main():
             drawer.draw_foods(simu.foods, main_surface)
             drawer.draw_building(simu.buildings, main_surface)
             drawer.draw_entities(simu.entities, main_surface, selected, main_surface_alpha)
+            refresh_counter_drw = 0
+        else:
+            if refresh_counter_drw % refresh_counter_drw_max == 0:
+                drawer.draw_grid(simu.grid, main_surface, main_surface_alpha)
+                drawer.draw_foods(simu.foods, main_surface)
+                drawer.draw_building(simu.buildings, main_surface)
+                drawer.draw_entities(simu.entities, main_surface, selected, main_surface_alpha)
+                refresh_counter_drw = 0
+            refresh_counter_drw += 1
 
-        #TEXTS        
-        fontsize = int(info_surface_height*0.016)
-        font = pygame.font.SysFont('Sans', fontsize)
-
+        #TEXTS  
         info_surface.fill((196, 196, 196, 255))
 
         shift = 0
@@ -430,28 +463,48 @@ def main():
                 txt_lines[index] = txt_cons_line
             index += 1
 
+        _max_line_size = np.max([len(t) for t in txt_lines])
+
+        # info_surface_width
+        # fontsize = int(info_surface_height*0.016)
+        # fontsize = int(_max_line_size * (1.0/3.0))
+        fontsize = int( info_surface_width / _max_line_size ) * 2
+        font = pygame.font.SysFont('Sans', fontsize)
+
         if changed:
             for i, l in enumerate(txt_lines):
                 # if l != "":
                 shift = drawer.draw_text(l, font, fontsize, info_surface, shift)
                     # txt_lines[i] = ""
-            window.blit(info_surface, (main_surface.get_width(),0))
-
+            if not fast:
+                window.blit(info_surface, (main_surface.get_width(),0))
+                refresh_counter_txt = 0
+            else:
+                if refresh_counter_txt % refresh_counter_txt_max == 0:
+                    window.blit(info_surface, (main_surface.get_width(),0))
+                    refresh_counter_txt = 0
+                refresh_counter_txt += 1
 
 
         #BLIT SURFACES
         if not fast:
             window.blit(main_surface, (0,0))
             window.blit(main_surface_alpha, (0,0))
+            refresh_counter_blt = 0
+            
+        else:
+            if refresh_counter_blt % refresh_counter_blt_max == 0:
+                window.blit(main_surface, (0,0))
+                window.blit(main_surface_alpha, (0,0))
+                
+                #UPDATE DISPLAY
+                # pygame.display.update()
+                refresh_counter_blt = 0
 
+            refresh_counter_blt += 1
 
         #UPDATE DISPLAY
-        # pygame.display.flip()
-            pygame.display.update()
-        else:
-            if tick == 0:
-                print(round(np.mean(fps_mean)))
-
+        pygame.display.update()
         # print("Avg friends: {} Avg Foes: {}\r".format(round(np.mean([len(e.friends) for e in simu.entities])/len(simu.entities), 2), round(np.mean([len(e.foes) for e in simu.entities])/len(simu.entities), 2)), end='', flush=True)
 
 

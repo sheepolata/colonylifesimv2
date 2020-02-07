@@ -1,10 +1,9 @@
 parameters = {
     "SCREEN_WIDTH"     : 1440,
     "SCREEN_HEIGHT"    : 900,
-    "MAINW_WIDTH"      : 900,
-    "MAINW_HEIGHT"     : 900,
-    "INFO_SURF_WIDTH"  : 1440-900,
-    "INFO_SURF_HEIGHT" : 900,
+    "SCREEN_PERCENT"   : 0.7,
+    "MAIN_WIN_RATIO"   : 0.625,
+    "MAIN_WIN_WH"      : -1,
     "GRID_W"           : 100,
     "GRID_H"           : 100
 }
