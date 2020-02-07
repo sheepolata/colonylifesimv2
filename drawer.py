@@ -81,7 +81,7 @@ def draw_building(buildings, surface):
         if b.image != None:
             surface.blit(pygame.transform.scale(b.image, b.tile.rect.size), b.tile.rect.topleft)
 
-def draw_entity(entity, surface, selected, alphasurf):
+def draw_entity(entity, surface, selected, alphasurf, draw_hb=False):
     global DEBUG
 
     pygame.draw.circle(surface, 
@@ -90,24 +90,25 @@ def draw_entity(entity, surface, selected, alphasurf):
                         min(int(entity.tile.rect.w/2)-1, int(entity.tile.rect.h/2)-1),
                         0)
 
-    draw_healthbar(entity.nutrition, entity.nutrition_max,
-                    (entity.tile.middle[0] - entity.tile.rect.width/4 - 1, entity.tile.middle[1] - entity.tile.rect.height/1.5),
-                    (entity.tile.rect.width/4*2, 2),
-                    surface,
-                    c1=(0,0,0,255),
-                    c2=(255,0,0,255))
+    if entity == selected or draw_hb:
+        draw_healthbar(entity.nutrition, entity.nutrition_max,
+                        (entity.tile.middle[0] - entity.tile.rect.width/4 - 1, entity.tile.middle[1] - entity.tile.rect.height/1.5),
+                        (entity.tile.rect.width/4*2, 2),
+                        surface,
+                        c1=(0,0,0,255),
+                        c2=(255,0,0,255))
 
-    draw_healthbar(entity.nutrition, entity.nutrition_max,
-                    (entity.tile.rect.width/2 + entity.tile.middle[0] - entity.tile.rect.width/4 - 1, entity.tile.middle[1] - entity.tile.rect.height/1.5),
-                    (entity.tile.rect.width/4*2, 2),
-                    surface,
-                    c1=(0,0,0,255),
-                    c2=(0,0,255,255))
+        draw_healthbar(entity.nutrition, entity.nutrition_max,
+                        (entity.tile.rect.width/2 + entity.tile.middle[0] - entity.tile.rect.width/4 - 1, entity.tile.middle[1] - entity.tile.rect.height/1.5),
+                        (entity.tile.rect.width/4*2, 2),
+                        surface,
+                        c1=(0,0,0,255),
+                        c2=(0,0,255,255))
 
-    draw_healthbar(entity.health, entity.health_max,
-                    (entity.tile.middle[0] - entity.tile.rect.width/2, entity.tile.middle[1] - entity.tile.rect.height),
-                    (entity.tile.rect.width + 1, 2),
-                    surface)
+        draw_healthbar(entity.health, entity.health_max,
+                        (entity.tile.middle[0] - entity.tile.rect.width/2, entity.tile.middle[1] - entity.tile.rect.height),
+                        (entity.tile.rect.width + 1, 2),
+                        surface)
 
     # for t in entity.grow_food_tile:
     #     pygame.draw.rect(surface, (255,255,255,255), t.rect, 2)
@@ -147,7 +148,7 @@ def draw_entity(entity, surface, selected, alphasurf):
                 list1d[i].redraw = True
 
         for f in selected.foes:
-            pygame.draw.line(surface, (0,255,0,255), entity.tile.middle, f.tile.middle, 1)
+            pygame.draw.line(surface, (255,0,0,255), entity.tile.middle, f.tile.middle, 1)
 
             #Bottom right
             if entity.tile.middle[0] > f.tile.middle[0] and entity.tile.middle[1] > f.tile.middle[1]:
