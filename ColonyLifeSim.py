@@ -27,13 +27,25 @@ class ThreadSimulation(threading.Thread):
         self._pause = False
         self._stop  = False
 
+        self.tick_second   = 0
+        self.loop_times    = []
+        self.max_loop_time = 10
+
     def run(self):
         # super(ThreadSimulation, self).run()
         while not self._stop:
+            _time = time.time()
+            
             if not self._pause:
                 self.simu.update()
-            if self.freq > 0:
-                time.sleep(self.freq / 1000.0)
+            _wait_time = (self.freq / 1000.0) - (time.time() - _time)
+            if _wait_time > 0:
+                time.sleep(_wait_time)
+
+            self.loop_times.append(1.0 / (time.time() - _time))
+            if len(self.loop_times) > self.max_loop_time:
+                self.loop_times = self.loop_times[1:]
+            self.tick_second = np.mean(self.loop_times)
 
     def pause(self):
         self._pause = not self._pause
@@ -258,11 +270,12 @@ def main():
             txt_lines[index] = vars_txt
         index += 1
 
-        try:
-            ticksecond = round( 1.0 / (p.sim_params["ACTION_TICK"]/1000.0) , 2)
-        except ZeroDivisionError:
-            ticksecond = "MAX"
-        param_txt = "SimSpeed = {} tick/sec".format(ticksecond)
+        # try:
+        #     ticksecond = round( 1.0 / (p.sim_params["ACTION_TICK"]/1000.0) , 2)
+        # except ZeroDivisionError:
+        #     ticksecond = "MAX"
+        # param_txt = "SimSpeed = {} tick/sec".format(ticksecond)
+        param_txt = "SimSpeed ({}ms/tck): {} tick/sec".format(p.sim_params["ACTION_TICK"], round(thread_simu.tick_second, 1))
         # param_txt += " (MIN)" if p.sim_params["ACTION_TICK"]==1000 else ""
         # param_txt += " (MAX)" if p.sim_params["ACTION_TICK"]==0 else ""
         if txt_lines[index] != param_txt:
