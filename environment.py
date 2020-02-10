@@ -37,6 +37,8 @@ class Simulation(object):
         self.nb_dead  = 0
         self.nb_birth = 0
 
+        self.date = 0
+
 
     def reset(self):
         self.foods = []
@@ -47,6 +49,8 @@ class Simulation(object):
         self.grid.rivers_path = []
         self.grid.river_tiles = []
         self.grid.shallow_water_tiles = []
+
+        self.date = 0
 
         for x in range(self.grid.width):
             for y in range(self.grid.height):
@@ -67,6 +71,7 @@ class Simulation(object):
         self.print_families()
 
     def update(self):
+        self.date += 1
 
         for b in self.buildings:
             b.update()

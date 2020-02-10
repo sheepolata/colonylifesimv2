@@ -15,6 +15,32 @@ import life
 import utils
 import console
 
+import threading
+
+class ThreadSimulation(threading.Thread):
+    """docstring for ThreadSimulation"""
+    def __init__(self, simu, freq):
+        super(ThreadSimulation, self).__init__()
+        self.simu = simu
+        self.freq = freq
+
+        self._pause = False
+        self._stop  = False
+
+    def run(self):
+        # super(ThreadSimulation, self).run()
+        while not self._stop:
+            if not self._pause:
+                self.simu.update()
+            if self.freq > 0:
+                time.sleep(self.freq / 1000.0)
+
+    def pause(self):
+        self._pause = not self._pause
+
+    def stop(self):
+        self._stop = True
+
 def main():
 
     pygame.init()
@@ -63,6 +89,8 @@ def main():
     #OBJECTS
     simu = env.Simulation(p.parameters["GRID_W"], p.parameters["GRID_H"], nb_ent=p.initial_params["nb_ent"], nb_food=p.initial_params["nb_food"], nb_river=p.initial_params["nb_river"])
 
+    thread_simu = ThreadSimulation(simu, p.sim_params["ACTION_TICK"])
+
     #VARS
     run = True
     started = True
@@ -87,17 +115,15 @@ def main():
 
     selected = None
 
-    date = 0
-    tick = 0
-
     print("LAUNCH COLONY LIFE SIMULATION v2.0, Welcome !")
     t = time.time()
 
+    thread_simu.start()
 
     while run:
         clock.tick(120)
 
-        console.console.update(date)
+        console.console.update(thread_simu.simu.date)
 
         #PYGAME EVENTS
         for event in pygame.event.get():
@@ -108,10 +134,11 @@ def main():
                     run = False
                 if event.key == K_SPACE:
                     pause = not pause
+                    thread_simu.pause()
                 if event.key == K_F12:
                     drawer.DEBUG = not drawer.DEBUG
                 if event.key == K_F1:
-                    np.random.shuffle(simu.entities)
+                    np.random.shuffle(thread_simu.simu.entities)
                     drawer.DEBUG_SWITCHED = True
                 if event.key == K_f:
                     fast = not fast
@@ -121,32 +148,35 @@ def main():
                         txt_lines.append("")
                     displ_all_ents = not displ_all_ents
                 if event.key == K_RIGHT:
-                    p.sim_params["ACTION_TICK"] = utils.clamp(p.sim_params["ACTION_TICK"]-1, 1, 30)
+                    p.sim_params["ACTION_TICK"] = utils.clamp(p.sim_params["ACTION_TICK"]-25, 0, 1000)
+                    thread_simu.freq = p.sim_params["ACTION_TICK"]
+
                 if event.key == K_LEFT:
-                    p.sim_params["ACTION_TICK"] = utils.clamp(p.sim_params["ACTION_TICK"]+1, 1, 30)
+                    p.sim_params["ACTION_TICK"] = utils.clamp(p.sim_params["ACTION_TICK"]+25, 0, 1000)
+                    thread_simu.freq = p.sim_params["ACTION_TICK"]
+
                 if event.key == K_e:
                     if started:
-                        life.Entity.spawn_randomly(simu)
+                        life.Entity.spawn_randomly(thread_simu.simu)
                 if event.key == K_s:
                     if not started:
                         started = True
                 if event.key == K_r:
                     started = True
                     selected = None
-                    date = 0
                     tick = 0
-                    simu.reset()
+                    thread_simu.simu.reset()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 #LMB
                 if event.button == 1 and pygame.key.get_mods() & pygame.KMOD_CTRL:
                     pass
                 elif event.button == 1:
-                    for x in range(simu.grid.width):
-                        for y in range(simu.grid.height):
-                            tile = simu.grid.grid[x][y]
+                    for x in range(thread_simu.simu.grid.width):
+                        for y in range(thread_simu.simu.grid.height):
+                            tile = thread_simu.simu.grid.grid[x][y]
                             if tile.rect.collidepoint(pygame.mouse.get_pos()):
                                 if tile.entities != []:
-                                    selected = simu.grid.grid[x][y].entities[0]
+                                    selected = thread_simu.simu.grid.grid[x][y].entities[0]
                                 else:
                                     selected = None
                                 print("{}, {}".format(tile.get_type(), tile.building.name if tile.building != None else "None"))
@@ -161,38 +191,29 @@ def main():
                 if event.button == 3 and pygame.key.get_mods() & pygame.KMOD_CTRL:
                     pass
                 if event.button == 3:
-                    for x in range(simu.grid.width):
-                        for y in range(simu.grid.height):
-                            tile = simu.grid.grid[x][y]
-                            if tile.rect.collidepoint(pygame.mouse.get_pos()):
-                                if tile.building == None:
-                                    simu.add_building(life.GatheringPlace(None, tile))
-                                else:
-                                    simu.rm_building(tile.building)
+                    # for x in range(thread_simu.simu.grid.width):
+                    #     for y in range(thread_simu.simu.grid.height):
+                    #         tile = thread_simu.simu.grid.grid[x][y]
+                    #         if tile.rect.collidepoint(pygame.mouse.get_pos()):
+                    #             if tile.building == None:
+                    #                 thread_simu.simu.add_building(life.GatheringPlace(None, tile))
+                    #             else:
+                    #                 thread_simu.simu.rm_building(tile.building)
                     pass
-        #UPDATE
-        if not pause and started:
-            if tick >= p.sim_params["ACTION_TICK"]:
-                tick = 0
-                date += 1
-            else:
-                tick += 1
-
-            simu.update()
 
         #DRAW
         if not fast:
-            drawer.draw_grid(simu.grid, main_surface, main_surface_alpha)
-            drawer.draw_foods(simu.foods, main_surface)
-            drawer.draw_building(simu.buildings, main_surface)
-            drawer.draw_entities(simu.entities, main_surface, selected, main_surface_alpha)
+            drawer.draw_grid(thread_simu.simu.grid, main_surface, main_surface_alpha)
+            drawer.draw_foods(thread_simu.simu.foods, main_surface)
+            drawer.draw_building(thread_simu.simu.buildings, main_surface)
+            drawer.draw_entities(thread_simu.simu.entities, main_surface, selected, main_surface_alpha)
             refresh_counter_drw = 0
         else:
             if refresh_counter_drw % refresh_counter_drw_max == 0:
-                drawer.draw_grid(simu.grid, main_surface, main_surface_alpha)
-                drawer.draw_foods(simu.foods, main_surface)
-                drawer.draw_building(simu.buildings, main_surface)
-                drawer.draw_entities(simu.entities, main_surface, selected, main_surface_alpha)
+                drawer.draw_grid(thread_simu.simu.grid, main_surface, main_surface_alpha)
+                drawer.draw_foods(thread_simu.simu.foods, main_surface)
+                drawer.draw_building(thread_simu.simu.buildings, main_surface)
+                drawer.draw_entities(thread_simu.simu.entities, main_surface, selected, main_surface_alpha)
                 refresh_counter_drw = 0
             refresh_counter_drw += 1
 
@@ -203,10 +224,10 @@ def main():
         changed = False
         index = 0
 
-        # minutes = date*10
-        minutes = (date*10)%60
-        hours = math.floor((date*10)/60)%24
-        days = math.floor(math.floor((date*10)/60)/24)
+        # minutes = thread_simu.simu.date*10
+        minutes = (thread_simu.simu.date*10)%60
+        hours = math.floor((thread_simu.simu.date*10)/60)%24
+        days = math.floor(math.floor((thread_simu.simu.date*10)/60)/24)
         date_txt = "Date : Day {}, {}:{}".format(days+1, "0"+str(hours) if hours<10 else hours, "00" if minutes==0 else minutes)
         if txt_lines[index] != date_txt:
             changed = True
@@ -237,19 +258,24 @@ def main():
             txt_lines[index] = vars_txt
         index += 1
 
-        param_txt = "SimSpeed = x{}".format(round(p.sim_params["ACTION_TICK_BASE"]/p.sim_params["ACTION_TICK"], 2))
-        param_txt += " (MAX)" if p.sim_params["ACTION_TICK"]==1 else ""
+        try:
+            ticksecond = round( 1.0 / (p.sim_params["ACTION_TICK"]/1000.0) , 2)
+        except ZeroDivisionError:
+            ticksecond = "MAX"
+        param_txt = "SimSpeed = {} tick/sec".format(ticksecond)
+        # param_txt += " (MIN)" if p.sim_params["ACTION_TICK"]==1000 else ""
+        # param_txt += " (MAX)" if p.sim_params["ACTION_TICK"]==0 else ""
         if txt_lines[index] != param_txt:
             changed = True
             txt_lines[index] = param_txt
         index += 1
 
-        if len(simu.entities) > 0:
-            nb_ent_txt = "Number of life form : {} ({}%M/{}%F)".format(len(simu.entities), 
-                                                                    round(len([x for x in simu.entities if x.sex=="M"])/len(simu.entities)*100, 1),
-                                                                    round(len([x for x in simu.entities if x.sex=="F"])/len(simu.entities)*100, 1))
+        if len(thread_simu.simu.entities) > 0:
+            nb_ent_txt = "Number of life form : {} ({}%M/{}%F)".format(len(thread_simu.simu.entities), 
+                                                                    round(len([x for x in thread_simu.simu.entities if x.sex=="M"])/len(thread_simu.simu.entities)*100, 1),
+                                                                    round(len([x for x in thread_simu.simu.entities if x.sex=="F"])/len(thread_simu.simu.entities)*100, 1))
         else:
-            nb_ent_txt = "Number of life form : {} ({}%M/{}%F)".format(len(simu.entities), "N/A", "N/A")
+            nb_ent_txt = "Number of life form : {} ({}%M/{}%F)".format(len(thread_simu.simu.entities), "N/A", "N/A")
 
         if txt_lines[index] != nb_ent_txt:
             changed = True
@@ -329,29 +355,29 @@ def main():
             index += 1
 
             for i in range(0, 5):
-                if i < len(simu.entities):
-                    ent_txt_tmp0 = "{} ({}/{}), {} days old".format(simu.entities[i].name, 
-                                                simu.entities[i].sex, 
-                                                round(simu.entities[i].libido) if not simu.entities[i].pregnant else "P{}".format(round(simu.entities[i].gestation/240)),
-                                                simu.entities[i].age)
-                    ent_txt_tmp1 = "HP {}%, Food {}%, Thrist {}% {}".format(round(simu.entities[i].health/simu.entities[i].health_max*100, 1),
-                                                                        round(simu.entities[i].nutrition/simu.entities[i].nutrition_max*100, 1),
-                                                                        round(simu.entities[i].thirst/simu.entities[i].thirst_max*100, 1),
-                                                                        simu.entities[i].state)
-                    if len(simu.entities[i].inventory) > 0:
+                if i < len(thread_simu.simu.entities):
+                    ent_txt_tmp0 = "{} ({}/{}), {} days old".format(thread_simu.simu.entities[i].name, 
+                                                thread_simu.simu.entities[i].sex, 
+                                                round(thread_simu.simu.entities[i].libido) if not thread_simu.simu.entities[i].pregnant else "P{}".format(round(thread_simu.simu.entities[i].gestation/240)),
+                                                thread_simu.simu.entities[i].age)
+                    ent_txt_tmp1 = "HP {}%, Food {}%, Thrist {}% {}".format(round(thread_simu.simu.entities[i].health/thread_simu.simu.entities[i].health_max*100, 1),
+                                                                        round(thread_simu.simu.entities[i].nutrition/thread_simu.simu.entities[i].nutrition_max*100, 1),
+                                                                        round(thread_simu.simu.entities[i].thirst/thread_simu.simu.entities[i].thirst_max*100, 1),
+                                                                        thread_simu.simu.entities[i].state)
+                    if len(thread_simu.simu.entities[i].inventory) > 0:
                         ent_txt_tmp2 = "   "
                     else:
                         ent_txt_tmp2 = ""
-                    for k in simu.entities[i].inventory:
+                    for k in thread_simu.simu.entities[i].inventory:
                         if k == "FOOD":
-                            ent_txt_tmp2 += "{}:x{} ".format(k, round(simu.entities[i].inventory[k]/simu.entities[i].nutrition_max, 2))
+                            ent_txt_tmp2 += "{}:x{} ".format(k, round(thread_simu.simu.entities[i].inventory[k]/thread_simu.simu.entities[i].nutrition_max, 2))
                         elif k=="WATER":
-                            ent_txt_tmp2 += "{}:x{} ".format(k, round(simu.entities[i].inventory[k]/simu.entities[i].thirst_max, 2))
+                            ent_txt_tmp2 += "{}:x{} ".format(k, round(thread_simu.simu.entities[i].inventory[k]/thread_simu.simu.entities[i].thirst_max, 2))
                         else:
-                            ent_txt_tmp2 += "{}:{} ".format(k, simu.entities[i].inventory[k])
+                            ent_txt_tmp2 += "{}:{} ".format(k, thread_simu.simu.entities[i].inventory[k])
 
-                    ent_txt_tmp3 = "   Frds: {} Foes: {}".format(len(simu.entities[i].friends), len(simu.entities[i].foes))
-                    ent_txt_tmp4 = "Expl. Satisfaction: {}%".format(round((len(simu.entities[i].known_tiles)/simu.entities[i].exploration_satistaction)*100, 1))
+                    ent_txt_tmp3 = "   Frds: {} Foes: {}".format(len(thread_simu.simu.entities[i].friends), len(thread_simu.simu.entities[i].foes))
+                    ent_txt_tmp4 = "Expl. Satisfaction: {}%".format(round((len(thread_simu.simu.entities[i].known_tiles)/thread_simu.simu.entities[i].exploration_satistaction)*100, 1))
                 else:
                     ent_txt_tmp0 = ""
                     ent_txt_tmp1 = ""
@@ -379,7 +405,7 @@ def main():
                     changed = True
                     txt_lines[index] = ent_txt_tmp4
                 index += 1
-        elif len(simu.entities) > 0:
+        elif len(thread_simu.simu.entities) > 0:
 
             _txt = "Average information:"
             if txt_lines[index] != _txt:
@@ -387,35 +413,35 @@ def main():
                 txt_lines[index] = _txt
             index += 1
 
-            _txt = "{} entities alive, {} birth, {} death".format(len(simu.entities), simu.nb_birth, simu.nb_dead)
+            _txt = "{} entities alive, {} birth, {} death".format(len(thread_simu.simu.entities), thread_simu.simu.nb_birth, thread_simu.simu.nb_dead)
             if txt_lines[index] != _txt:
                 changed = True
                 txt_lines[index] = _txt
             index += 1
 
-            _txt = "Average Age: {} days old, Friends: {}; Foes: {}; Libido: {}".format(round(np.mean([e.age for e in simu.entities]), 1), round(np.mean([len(e.friends) for e in simu.entities]), 1), round(np.mean([len(e.foes) for e in simu.entities]), 1), round(np.mean([e.libido for e in simu.entities]), 1))
+            _txt = "Average Age: {} days old, Friends: {}; Foes: {}; Libido: {}".format(round(np.mean([e.age for e in thread_simu.simu.entities]), 1), round(np.mean([len(e.friends) for e in thread_simu.simu.entities]), 1), round(np.mean([len(e.foes) for e in thread_simu.simu.entities]), 1), round(np.mean([e.libido for e in thread_simu.simu.entities]), 1))
             if txt_lines[index] != _txt:
                 changed = True
                 txt_lines[index] = _txt
             index += 1
 
             _txt = "Average Exploration: {}%".format(
-                                            round(np.mean([(len(e.known_tiles)/e.total_tiles)*100 for e in simu.entities]), 1)
+                                            round(np.mean([(len(e.known_tiles)/e.total_tiles)*100 for e in thread_simu.simu.entities]), 1)
                                                     )
             if txt_lines[index] != _txt:
                 changed = True
                 txt_lines[index] = _txt
             index += 1
 
-            _txt = "With child: {}, due in {} days".format(len([e for e in simu.entities if e.pregnant]), np.sort([round(e.gestation/240,1) for e in simu.entities if e.pregnant]))
+            _txt = "With child: {}, due in {} days".format(len([e for e in thread_simu.simu.entities if e.pregnant]), np.sort([round(e.gestation/240,1) for e in thread_simu.simu.entities if e.pregnant]))
             if txt_lines[index] != _txt:
                 changed = True
                 txt_lines[index] = _txt
             index += 1
 
-            avgh = round((np.mean([e.health/e.health_max for e in simu.entities]))*100, 1)
-            avgn = round((np.mean([e.nutrition/e.nutrition_max for e in simu.entities]))*100, 1)
-            avgt = round((np.mean([e.thirst/e.thirst_max for e in simu.entities]))*100, 1)
+            avgh = round((np.mean([e.health/e.health_max for e in thread_simu.simu.entities]))*100, 1)
+            avgn = round((np.mean([e.nutrition/e.nutrition_max for e in thread_simu.simu.entities]))*100, 1)
+            avgt = round((np.mean([e.thirst/e.thirst_max for e in thread_simu.simu.entities]))*100, 1)
             _txt = "Average health: {}%, nutrition: {}%, thirst: {}%".format(avgh, avgn, avgt)
             if txt_lines[index] != _txt:
                 changed = True
@@ -423,7 +449,7 @@ def main():
             index += 1
 
             d = {}
-            for e in simu.entities:
+            for e in thread_simu.simu.entities:
                 if e.state_short in d:
                     d[e.state_short] += 1
                 else:
@@ -505,8 +531,9 @@ def main():
 
         #UPDATE DISPLAY
         pygame.display.update()
-        # print("Avg friends: {} Avg Foes: {}\r".format(round(np.mean([len(e.friends) for e in simu.entities])/len(simu.entities), 2), round(np.mean([len(e.foes) for e in simu.entities])/len(simu.entities), 2)), end='', flush=True)
+        # print("Avg friends: {} Avg Foes: {}\r".format(round(np.mean([len(e.friends) for e in thread_simu.simu.entities])/len(thread_simu.simu.entities), 2), round(np.mean([len(e.foes) for e in thread_simu.simu.entities])/len(thread_simu.simu.entities), 2)), end='', flush=True)
 
+    thread_simu.stop()
 
 
     print("END OF COLONY LIFE SIMULATION ! Ended in approx. {} hours".format( round((time.time() - t)/60/24, 2) ))

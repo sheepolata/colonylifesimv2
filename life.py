@@ -127,86 +127,82 @@ class Entity(object):
         self.behaviours_by_priority.append(self.b_idle)
 
     def update(self):
-        if self.act_tck_cnt >= p.sim_params["ACTION_TICK"]:
-            self.act_tck_cnt = 0
 
+        if self.health <= 0:
+            print("{} died of bad health at {} days old".format(self.name, self.age))
+            console.console.print("{} died of bad health at {} days old".format(self.name, self.age))
+            self.dead = True
+            self.tile.rm_entity(self)
+        if self.thirst <= 0:
+            self.health -= 100/(6*(np.random.randint(0, 3)+1))
             if self.health <= 0:
-                print("{} died of bad health at {} days old".format(self.name, self.age))
-                console.console.print("{} died of bad health at {} days old".format(self.name, self.age))
+                print("{} died of thirst at {} days old".format(self.name, self.age))
+                console.console.print("{} died of thirst at {} days old".format(self.name, self.age))
                 self.dead = True
                 self.tile.rm_entity(self)
-            if self.thirst <= 0:
-                self.health -= 100/(6*(np.random.randint(0, 3)+1))
-                if self.health <= 0:
-                    print("{} died of thirst at {} days old".format(self.name, self.age))
-                    console.console.print("{} died of thirst at {} days old".format(self.name, self.age))
-                    self.dead = True
-                    self.tile.rm_entity(self)
-            if self.nutrition <= 0:
-                self.health -= 100/(6*(np.random.randint(11, 24)+1))
-                if self.health <= 0:
-                    print("{} died of starvation at {} days old".format(self.name, self.age))
-                    console.console.print("{} died of starvation at {} days old".format(self.name, self.age))
-                    self.dead = True
-                    self.tile.rm_entity(self)
-            if self.age >= 30 * self.old_age_thresh:
-                if np.random.random() < (1 - ((self.age-(30 * self.old_age_thresh))/(30 * self.old_age_thresh))):
-                    print("{} died of old age at {} days old (death chance: {})".format(self.name, self.age, round(1 - ((self.age-(30 * self.old_age_thresh))/(30 * self.old_age_thresh)), 2)))
-                    console.console.print("{} died of old age at {} days old (death chance: {})".format(self.name, self.age, round(1 - ((self.age-(30 * self.old_age_thresh))/(30 * self.old_age_thresh)), 2)))
-                    self.dead = True
-                    self.tile.rm_entity(self)
-            
-            if self.dead:
-                for e in self.simu.entities:
-                    if e != self and self in e.relations:
-                        del e.relations[self]
-                return
+        if self.nutrition <= 0:
+            self.health -= 100/(6*(np.random.randint(11, 24)+1))
+            if self.health <= 0:
+                print("{} died of starvation at {} days old".format(self.name, self.age))
+                console.console.print("{} died of starvation at {} days old".format(self.name, self.age))
+                self.dead = True
+                self.tile.rm_entity(self)
+        if self.age >= 30 * self.old_age_thresh:
+            if np.random.random() < (1 - ((self.age-(30 * self.old_age_thresh))/(30 * self.old_age_thresh))):
+                print("{} died of old age at {} days old (death chance: {})".format(self.name, self.age, round(1 - ((self.age-(30 * self.old_age_thresh))/(30 * self.old_age_thresh)), 2)))
+                console.console.print("{} died of old age at {} days old (death chance: {})".format(self.name, self.age, round(1 - ((self.age-(30 * self.old_age_thresh))/(30 * self.old_age_thresh)), 2)))
+                self.dead = True
+                self.tile.rm_entity(self)
+        
+        if self.dead:
+            for e in self.simu.entities:
+                if e != self and self in e.relations:
+                    del e.relations[self]
+            return
 
-            if self.work_left <= 0:
+        if self.work_left <= 0:
 
-                for b in self.behaviours_by_priority:
-                    if b():
-                        break
+            for b in self.behaviours_by_priority:
+                if b():
+                    break
 
-                if self.chck_surrounding_tmr >= 5:
-                    self.chck_surrounding_tmr = 0
-                    self.check_surrounding()
-                else:
-                    self.chck_surrounding_tmr += 1
-
-                for n in self.grid.get_neighbours_of(self.tile) + [self.tile]:
-                    if n not in self.known_tiles:
-                        self.known_tiles.append(n)
-
-                # print("{} ({})".format(len(self.known_tiles), self.exploration_satistaction))
+            if self.chck_surrounding_tmr >= 5:
+                self.chck_surrounding_tmr = 0
+                self.check_surrounding()
             else:
-                self.work_left -= 1
+                self.chck_surrounding_tmr += 1
 
-            self.nutrition = max(0, self.nutrition-self.nutrition_rate)
-            self.thirst    = max(0, self.thirst-self.thirst_rate)
-            if self.nutrition > self.nutrition_max*0.35 and self.thirst > self.thirst_max*0.35:
-                self.health = min(self.health_max, self.health + np.mean([self.nutrition/self.nutrition_max, self.thirst/self.thirst_max])/100)
+            for n in self.grid.get_neighbours_of(self.tile) + [self.tile]:
+                if n not in self.known_tiles:
+                    self.known_tiles.append(n)
 
-
-            if self.pregnant:
-                self.libido = 0
-                self.gestation -= 1
-                if self.gestation <= 0:
-                    self.give_birth()
-            else:
-                self.libido = min(100, self.libido + (np.random.random()/4.0))
-
-            self.age_raw += 1
-            minutes = (self.age_raw*10)%60
-            hours = math.floor((self.age_raw*10)/60)%24
-            days = math.floor(math.floor((self.age_raw*10)/60)/24)
-            self.age = round(days + (hours/24), 1)
-
-            self.visible_tiles = [[], [], [], [], []]
-
-
+            # print("{} ({})".format(len(self.known_tiles), self.exploration_satistaction))
         else:
-            self.act_tck_cnt += 1
+            self.work_left -= 1
+
+        self.nutrition = max(0, self.nutrition-self.nutrition_rate)
+        self.thirst    = max(0, self.thirst-self.thirst_rate)
+        if self.nutrition > self.nutrition_max*0.35 and self.thirst > self.thirst_max*0.35:
+            self.health = min(self.health_max, self.health + np.mean([self.nutrition/self.nutrition_max, self.thirst/self.thirst_max])/100)
+
+
+        if self.pregnant:
+            self.libido = 0
+            self.gestation -= 1
+            if self.gestation <= 0:
+                self.give_birth()
+        else:
+            self.libido = min(100, self.libido + (np.random.random()/4.0))
+
+        self.age_raw += 1
+        minutes = (self.age_raw*10)%60
+        hours = math.floor((self.age_raw*10)/60)%24
+        days = math.floor(math.floor((self.age_raw*10)/60)/24)
+        self.age = round(days + (hours/24), 1)
+
+        self.visible_tiles = [[], [], [], [], []]
+
+
 
     def move_to(self, dest):
         self.tile.rm_entity(self)
@@ -966,29 +962,24 @@ class Food(object):
         self.act_tck_cnt = 0
 
     def update(self):
-        if self.act_tck_cnt >= p.sim_params["ACTION_TICK"]:
-            self.act_tck_cnt = 0
+        if self.resource_qtt <= 0:
+            self.available = False
+            self.dead = True
 
-            if self.resource_qtt <= 0:
-                self.available = False
-                self.dead = True
+        if self.dead:
+            self.resource_qtt = 0
+            self.available = False
+            self.dead = True
+            self.tile.set_food(None)
 
-            if self.dead:
-                self.resource_qtt = 0
-                self.available = False
-                self.dead = True
-                self.tile.set_food(None)
-
-            self.lifespan -= 1
-            if self.lifespan > 0:
-                self.resource_qtt = min(self.resource_max, self.resource_qtt+self.regrow_rate)
-            else:
-                self.resource_qtt = min(self.resource_max, self.resource_qtt-(self.regrow_rate/2))
-
-            if not self.available and self.resource_qtt > self.resource_max*0.95:
-                self.available = True
+        self.lifespan -= 1
+        if self.lifespan > 0:
+            self.resource_qtt = min(self.resource_max, self.resource_qtt+self.regrow_rate)
         else:
-            self.act_tck_cnt += 1
+            self.resource_qtt = min(self.resource_max, self.resource_qtt-(self.regrow_rate/2))
+
+        if not self.available and self.resource_qtt > self.resource_max*0.95:
+            self.available = True
 
     @staticmethod
     def spawn_randomly(simu, biome):
@@ -1038,30 +1029,26 @@ class PlantedFood(Food):
         self.available = False
 
     def update(self):
-        if self.act_tck_cnt >= p.sim_params["ACTION_TICK"]:
-            self.act_tck_cnt = 0
 
-            if self.resource_qtt <= 0:
-                self.available = False
-                self.dead = True
+        if self.resource_qtt <= 0:
+            self.available = False
+            self.dead = True
 
-            if self.dead:
-                self.resource_qtt = 0
-                self.available = False
-                self.dead = True
-                self.tile.set_food(None)
-                self.creator.planted_food_list.remove(self)
+        if self.dead:
+            self.resource_qtt = 0
+            self.available = False
+            self.dead = True
+            self.tile.set_food(None)
+            self.creator.planted_food_list.remove(self)
 
-            self.lifespan -= 1
-            if self.lifespan > 0:
-                self.resource_qtt = min(self.resource_max, self.resource_qtt+self.regrow_rate)
-            else:
-                self.resource_qtt = min(self.resource_max, self.resource_qtt-(self.regrow_rate/2))
-
-            if not self.available and self.resource_qtt == self.resource_max:#> self.resource_max*0.95:
-                self.available = True
+        self.lifespan -= 1
+        if self.lifespan > 0:
+            self.resource_qtt = min(self.resource_max, self.resource_qtt+self.regrow_rate)
         else:
-            self.act_tck_cnt += 1
+            self.resource_qtt = min(self.resource_max, self.resource_qtt-(self.regrow_rate/2))
+
+        if not self.available and self.resource_qtt == self.resource_max:#> self.resource_max*0.95:
+            self.available = True
 
 
 
@@ -1090,57 +1077,52 @@ class Tree(object):
         self.dead = False
 
     def update(self):
-        if self.act_tck_cnt >= p.sim_params["ACTION_TICK"]:
-            self.act_tck_cnt = 0
-            
-            self.age += 1
-            # if self.age > self.lifespan:
-            #     if np.random.random() < 0.1:
-            #         self.dead = True
+        self.age += 1
+        # if self.age > self.lifespan:
+        #     if np.random.random() < 0.1:
+        #         self.dead = True
 
-            # if self.dead:
-            #     self.tile.set_tree(None)
-            #     return
+        # if self.dead:
+        #     self.tile.set_tree(None)
+        #     return
 
-            if self.age%(self.cycle) == 0:
-                if np.random.random() < 0.1:
-                    av_n = [n for n in self.tile.get_neighbours(dn=True) if (n.food == None and not n.is_river and n.get_type() in Food.get_good_tiles())]
-                    if av_n:
-                        prob = []
-                        for n in av_n:
-                            if n.get_type() in ["GRASS"]:
-                                prob.append(3)
-                            elif n.get_type() in ["HILL"]:
-                                prob.append(2)
-                            else:
-                                prob.append(1)
-                        prob = [_p/sum(prob) for _p in prob]
+        if self.age%(self.cycle) == 0:
+            if np.random.random() < 0.1:
+                av_n = [n for n in self.tile.get_neighbours(dn=True) if (n.food == None and not n.is_river and n.get_type() in Food.get_good_tiles())]
+                if av_n:
+                    prob = []
+                    for n in av_n:
+                        if n.get_type() in ["GRASS"]:
+                            prob.append(3)
+                        elif n.get_type() in ["HILL"]:
+                            prob.append(2)
+                        else:
+                            prob.append(1)
+                    prob = [_p/sum(prob) for _p in prob]
 
-                        t = np.random.choice(av_n, p=prob)
-                        if t.tree == None and t.food == None:
-                            t.set_food(ForestFood(self.simu, t, t.get_type()))
-                # elif np.random.random() < 0.3:
-                #     av_n = [n for n in self.tile.get_neighbours(dn=True) if (not n.is_river and n.get_type() in Tree.get_good_tiles())]
-                #     if av_n:
-                #         prob = []
-                #         for n in av_n:
-                #             if n.get_type() in ["GRASS"]:
-                #                 prob.append(3)
-                #             elif n.get_type() in ["HILL", "SAND"]:
-                #                 prob.append(2)
-                #             elif n.get_type() in ["MOUNTAIN"]:
-                #                 prob.append(1)
-                #             else:
-                #                 prob.append(1)
-                #         prob = [_p/sum(prob) for _p in prob]
+                    t = np.random.choice(av_n, p=prob)
+                    if t.tree == None and t.food == None:
+                        t.set_food(ForestFood(self.simu, t, t.get_type()))
+            # elif np.random.random() < 0.3:
+            #     av_n = [n for n in self.tile.get_neighbours(dn=True) if (not n.is_river and n.get_type() in Tree.get_good_tiles())]
+            #     if av_n:
+            #         prob = []
+            #         for n in av_n:
+            #             if n.get_type() in ["GRASS"]:
+            #                 prob.append(3)
+            #             elif n.get_type() in ["HILL", "SAND"]:
+            #                 prob.append(2)
+            #             elif n.get_type() in ["MOUNTAIN"]:
+            #                 prob.append(1)
+            #             else:
+            #                 prob.append(1)
+            #         prob = [_p/sum(prob) for _p in prob]
 
-                #         t = np.random.choice(av_n, p=prob)
-                #         if t.tree == None and t.food == None:
-                #             t.set_tree(Tree(self.simu, t))
+            #         t = np.random.choice(av_n, p=prob)
+            #         if t.tree == None and t.food == None:
+            #             t.set_tree(Tree(self.simu, t))
 
 
-        else:
-            self.act_tck_cnt += 1
         
 
     @staticmethod
