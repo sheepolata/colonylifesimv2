@@ -12,7 +12,10 @@ def get_sign(x):
         return 0
 
 def normalise(a, mini=0, maxi=1):
-    return (float(a) - float(mini)) / (float(maxi) - float(mini))
+    denom = float(maxi) - float(mini)
+    if denom == 0:
+        return 0
+    return (float(a) - float(mini)) / denom
 
 def normalise_list(l):
     if len(l) == 1:
