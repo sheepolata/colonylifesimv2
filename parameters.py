@@ -21,6 +21,10 @@ sim_params = {
     "FRIEND_FOE_TRESH" : 1
 }
 
+behaviour_params = {
+    "SOCIAL_INTERACTION_CHANCE" : 0.05
+}
+
 type2cost = {
     "GRASS"        : 0.0,
     "SAND"         : 0.5,
@@ -62,12 +66,13 @@ social_feats_factors = {
 }
 
 all_dict = {
-    "parameters"          : [parameters         , "num"  ],
-    "initial_params"      : [initial_params     , "num"  ],
-    "sim_params"          : [sim_params         , "num"  ],
-    "type2cost"           : [type2cost          , "num"  ],
-    "type2cost_river"     : [type2cost_river    , "num"  ],
-    "type2color"          : [type2color         , "color"],
+    "parameters"           : [parameters          , "num"  ],
+    "initial_params"       : [initial_params      , "num"  ],
+    "behaviour_params"     : [behaviour_params    , "num"  ],
+    "sim_params"           : [sim_params          , "num"  ],
+    "type2cost"            : [type2cost           , "num"  ],
+    "type2cost_river"      : [type2cost_river     , "num"  ],
+    "type2color"           : [type2color          , "color"],
     "social_feats_factors" : [social_feats_factors, "num"  ]
 }
 

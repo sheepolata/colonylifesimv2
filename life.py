@@ -678,7 +678,7 @@ class Entity(object):
             return False
 
     def b_social_interaction(self):
-        if np.random.random() >= 0.05:
+        if np.random.random() >= p.behaviour_params["SOCIAL_INTERACTION_CHANCE"]:
             return False
 
         others = self.get_closest_entities(self.get_visible_tiles(2))

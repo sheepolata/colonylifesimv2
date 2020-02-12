@@ -326,6 +326,8 @@ def main():
                 ent_txt3 = ""
 
             ent_txt4 = "Expl. Satisfaction: {}%".format(round((len(selected.known_tiles)/selected.exploration_satistaction)*100, 1))
+
+            ent_txt5 = ""
         else:
             ent_txt0 = ""
             ent_txt_social = ""
@@ -333,6 +335,7 @@ def main():
             ent_txt2 = ""
             ent_txt3 = ""
             ent_txt4 = ""
+            ent_txt5 = ""
 
         if txt_lines[index] != ent_txt0:
             changed = True
@@ -357,6 +360,10 @@ def main():
         if txt_lines[index] != ent_txt4:
             changed = True
             txt_lines[index] = ent_txt4
+        index += 1
+        if txt_lines[index] != ent_txt5:
+            changed = True
+            txt_lines[index] = ent_txt5
         index += 1
 
         if displ_all_ents:
@@ -432,7 +439,7 @@ def main():
                 txt_lines[index] = _txt
             index += 1
 
-            _txt = "Average Age: {} days old, Friends: {}; Foes: {}; Libido: {}".format(round(np.mean([e.age for e in thread_simu.simu.entities]), 1), round(np.mean([len(e.friends) for e in thread_simu.simu.entities]), 1), round(np.mean([len(e.foes) for e in thread_simu.simu.entities]), 1), round(np.mean([e.libido for e in thread_simu.simu.entities]), 1))
+            _txt = "Average Age: {} days old, Friends: {}; Foes: {}".format(round(np.mean([e.age for e in thread_simu.simu.entities]), 1), round(np.mean([len(e.friends) for e in thread_simu.simu.entities]), 1), round(np.mean([len(e.foes) for e in thread_simu.simu.entities]), 1))
             if txt_lines[index] != _txt:
                 changed = True
                 txt_lines[index] = _txt
