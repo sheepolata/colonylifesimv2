@@ -122,6 +122,7 @@ class Entity(object):
         self.behaviours_by_priority.append(self.b_collect_water)
         self.behaviours_by_priority.append(self.b_harvest_food)
         self.behaviours_by_priority.append(self.b_search_and_mate)
+        self.behaviours_by_priority.append(self.b_social_interaction)
         self.behaviours_by_priority.append(self.b_explore)
         self.behaviours_by_priority.append(self.b_plant_food)
         self.behaviours_by_priority.append(self.b_idle)
@@ -162,19 +163,21 @@ class Entity(object):
 
         if self.work_left <= 0:
 
-            for b in self.behaviours_by_priority:
-                if b():
-                    break
-
-            if self.chck_surrounding_tmr >= 5:
+            if self.chck_surrounding_tmr >= 6: #Every hour if not working
                 self.chck_surrounding_tmr = 0
                 self.check_surrounding()
             else:
                 self.chck_surrounding_tmr += 1
 
+            for b in self.behaviours_by_priority:
+                if b():
+                    break
+
+            self.update_relations()
+            
             for n in self.grid.get_neighbours_of(self.tile) + [self.tile]:
-                if n not in self.known_tiles:
-                    self.known_tiles.append(n)
+                self.known_tiles.append(n)
+            self.known_tiles = list(set(self.known_tiles))
 
             # print("{} ({})".format(len(self.known_tiles), self.exploration_satistaction))
         else:
@@ -232,6 +235,8 @@ class Entity(object):
 
             self.water_memory = _to_sort[:min(len(_to_sort), self.water_memory_max)]
 
+        
+    def update_relations(self):
         ent_sorted = self.get_closest_entities(self.get_visible_tiles(1))
         for e in ent_sorted:
             if e == self:
@@ -246,6 +251,7 @@ class Entity(object):
 
             self.relations[e] = utils.clamp(self.relations[e], -p.sim_params["FRIEND_FOE_TRESH"]*2, p.sim_params["FRIEND_FOE_TRESH"]*2)
 
+
         for e in self.relations:
             if e not in self.friends and e not in self.foes:
                 if self.relations[e] > p.sim_params["FRIEND_FOE_TRESH"]:
@@ -257,26 +263,8 @@ class Entity(object):
             elif e in self.foes and self.relations[e] >= -p.sim_params["FRIEND_FOE_TRESH"]:
                 self.foes.remove(e)
 
-        # for e in self.friends:
-        #     for fr in e.friends:
-        #         if e == self:
-        #             continue
-        #         if fr not in self.relations:
-        #             self.relations[fr] = 0.0
-        #         self.relations[fr] += 0.05
-        # for e in self.foes:
-        #     for fr in e.foes:
-        #         if e == self:
-        #             continue
-        #         if fr not in self.relations:
-        #             self.relations[fr] = 0.0
-        #         self.relations[fr] -= 0.05
-
         self.friends = [x for x in self.friends if not x.dead]
         self.foes = [x for x in self.foes if not x.dead]
-
-        # if self.friends or self.foes:
-        #     print("{}\nFriends : {}\nFoes    : {}".format(self.name, [e.name for e in self.friends], [e.name for e in self.foes]))
 
     def get_closest_water(self, tile_list, center=None):
         if center == None:
@@ -305,9 +293,9 @@ class Entity(object):
             center = self.tile
         of_type = [t for t in tile_list if (t.entities!=[])]
 
-        def key(e):
+        def _sort_key(e):
             return utils.distance2p(center.getXY(), e.getXY())
-        of_type.sort(key=key)
+        of_type.sort(key=_sort_key)
 
         return [e for tile in of_type for e in tile.entities]
 
@@ -688,6 +676,62 @@ class Entity(object):
                     return False
         else:
             return False
+
+    def b_social_interaction(self):
+        if np.random.random() >= 0.05:
+            return False
+
+        others = self.get_closest_entities(self.get_visible_tiles(2))
+        if others:
+            _c = np.random.choice(others)
+            _modif = 0.0
+            if _c in self.friends:
+                if np.random.random() >= 0.9:
+                    _modif = self.subb_befriend(_c)
+                else:
+                    _modif = self.subb_insult(_c)
+            elif _c in self.foes:
+                if np.random.random() >= 0.9:
+                    _modif = self.subb_insult(_c)
+                else:
+                    _modif = self.subb_befriend(_c)
+            else:
+                if np.random.random() >= 0.5:
+                    _modif = self.subb_befriend(_c)
+                else:
+                    _modif = self.subb_insult(_c)
+
+            console.console.print("{} interacted with {} (rel. {}{})".format(self.name, _c.name, "+" if _modif>=0 else "",round(_modif*100.0, 1)))
+
+            return True
+
+        return False
+
+    def subb_insult(self, _other):
+        if not _other in self.relations.keys():
+            self.relations[_other] = 0.0
+        if not self in _other.relations.keys():
+            _other.relations[self] = 0.0
+
+        modif = -utils.random_range(0.001, 0.015)
+        self.relations[_other] += modif
+        _other.relations[self] += modif * 1.5
+
+        return modif
+
+
+    def subb_befriend(self, _other):
+        if not _other in self.relations.keys():
+            self.relations[_other] = 0.0
+        if not self in _other.relations.keys():
+            _other.relations[self] = 0.0
+
+        modif = utils.random_range(0.001, 0.015)
+        self.relations[_other] += modif
+        _other.relations[self] += modif * 1.5
+
+        return modif
+
 
     def b_explore(self):
         # print(self.name, str(self.goto_tile), str(self.tile))

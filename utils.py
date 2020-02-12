@@ -96,6 +96,9 @@ def random_angle_in_direction(_dir, span):
     else:
         return np.random.randint(a, b)
 
+def random_range(_min, _max):
+    _rnd = _min + np.random.random() * (_max - _min)
+    return _rnd
 
 def flatten(l):
     flat_list = [item for sublist in l for item in sublist]
