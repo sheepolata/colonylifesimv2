@@ -22,7 +22,9 @@ sim_params = {
 }
 
 behaviour_params = {
-    "SOCIAL_INTERACTION_CHANCE" : 0.05
+    "SOCIAL_INTERACTION_CHANCE"                       : 0.05,
+    "SOCIAL_INTERACTION_POSITIVE_REENFORCMENT_CHANCE" : 0.8,
+    "SOCIAL_INTERACTION_NEUTRAL_REENFORCMENT_CHANCE"  : 0.5
 }
 
 type2cost = {

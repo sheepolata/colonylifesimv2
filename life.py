@@ -38,8 +38,9 @@ class Entity(object):
             self.tile = np.random.choice(self.grid.grid[np.random.randint(0, len(self.grid.grid[0]))])
         self.tile.add_entity(self)
 
-        self.all_names = name
-        self.name = self.all_names[0] + " " + (self.all_names[1][0] + ". " if self.all_names[1] != "" else "") + self.all_names[2]
+        # self.all_names = name
+        # self.name = self.all_names[0] + " " + (self.all_names[1][0] + ". " if self.all_names[1] != "" else "") + self.all_names[2]
+        self.set_name(name)
 
         self.color = (255, 208, 42, 255)
 
@@ -172,8 +173,6 @@ class Entity(object):
             for b in self.behaviours_by_priority:
                 if b():
                     break
-
-            self.update_relations()
             
             for n in self.grid.get_neighbours_of(self.tile) + [self.tile]:
                 self.known_tiles.append(n)
@@ -237,6 +236,21 @@ class Entity(object):
 
         
     def update_relations(self):
+        for e in self.relations:
+            if e not in self.friends and e not in self.foes:
+                if self.relations[e] > p.sim_params["FRIEND_FOE_TRESH"]:
+                    self.friends.append(e)
+                elif self.relations[e] < -p.sim_params["FRIEND_FOE_TRESH"]:
+                    self.foes.append(e)
+            elif e in self.friends and self.relations[e] <= p.sim_params["FRIEND_FOE_TRESH"]:
+                self.friends.remove(e)
+            elif e in self.foes and self.relations[e] >= -p.sim_params["FRIEND_FOE_TRESH"]:
+                self.foes.remove(e)
+
+        self.friends = [x for x in self.friends if not x.dead]
+        self.foes = [x for x in self.foes if not x.dead]
+
+    def form_relations_with_surroundings(self):
         ent_sorted = self.get_closest_entities(self.get_visible_tiles(1))
         for e in ent_sorted:
             if e == self:
@@ -251,20 +265,7 @@ class Entity(object):
 
             self.relations[e] = utils.clamp(self.relations[e], -p.sim_params["FRIEND_FOE_TRESH"]*2, p.sim_params["FRIEND_FOE_TRESH"]*2)
 
-
-        for e in self.relations:
-            if e not in self.friends and e not in self.foes:
-                if self.relations[e] > p.sim_params["FRIEND_FOE_TRESH"]:
-                    self.friends.append(e)
-                elif self.relations[e] < -p.sim_params["FRIEND_FOE_TRESH"]:
-                    self.foes.append(e)
-            elif e in self.friends and self.relations[e] <= p.sim_params["FRIEND_FOE_TRESH"]:
-                self.friends.remove(e)
-            elif e in self.foes and self.relations[e] >= -p.sim_params["FRIEND_FOE_TRESH"]:
-                self.foes.remove(e)
-
-        self.friends = [x for x in self.friends if not x.dead]
-        self.foes = [x for x in self.foes if not x.dead]
+        self.update_relations()
 
     def get_closest_water(self, tile_list, center=None):
         if center == None:
@@ -678,30 +679,43 @@ class Entity(object):
             return False
 
     def b_social_interaction(self):
+
+        self.form_relations_with_surroundings()
+
         if np.random.random() >= p.behaviour_params["SOCIAL_INTERACTION_CHANCE"]:
             return False
+
+        self.state = "SOCIAL INTERACTION"
+        self.state_short = "SocInt"
+
+        _interactioninfo = ""
 
         others = self.get_closest_entities(self.get_visible_tiles(2))
         if others:
             _c = np.random.choice(others)
             _modif = 0.0
             if _c in self.friends:
-                if np.random.random() >= 0.9:
+                _interactioninfo = "friend"
+                if np.random.random() >= p.behaviour_params["SOCIAL_INTERACTION_POSITIVE_REENFORCMENT_CHANCE"]:
                     _modif = self.subb_befriend(_c)
                 else:
                     _modif = self.subb_insult(_c)
             elif _c in self.foes:
-                if np.random.random() >= 0.9:
+                _interactioninfo = "foe"
+                if np.random.random() >= p.behaviour_params["SOCIAL_INTERACTION_POSITIVE_REENFORCMENT_CHANCE"]:
                     _modif = self.subb_insult(_c)
                 else:
                     _modif = self.subb_befriend(_c)
             else:
-                if np.random.random() >= 0.5:
+                _interactioninfo = "neutral"
+                if np.random.random() >= p.behaviour_params["SOCIAL_INTERACTION_NEUTRAL_REENFORCMENT_CHANCE"]:
                     _modif = self.subb_befriend(_c)
                 else:
                     _modif = self.subb_insult(_c)
 
-            console.console.print("{} interacted with {} (rel. {}{})".format(self.name, _c.name, "+" if _modif>=0 else "",round(_modif*100.0, 1)))
+            console.console.print("{} interacted with {} ({}{}{})".format(self.name_short, _c.name_short, _interactioninfo, "+" if _modif>=0 else "",round(_modif*100.0, 1)))
+
+            self.work_left = np.random.randint(1, 6);
 
             return True
 
@@ -824,9 +838,10 @@ class Entity(object):
         else:
             return False
 
-    def set_name(self, name):
-        self.all_names = name
+    def set_name(self, names):
+        self.all_names = names
         self.name = self.all_names[0] + " " + (self.all_names[1][0] + ". " if self.all_names[1] != "" else "") + self.all_names[2]
+        self.name_short = self.all_names[0][0] + "." + (self.all_names[1][0] + ". " if self.all_names[1] != "" else "") + self.all_names[2]
 
     #GLOBALS
     @staticmethod
