@@ -295,17 +295,18 @@ def main():
             txt_lines[index] = nb_ent_txt
         index += 1
 
-        nb_ent_txt = "Selected:"
-        if txt_lines[index] != nb_ent_txt:
-            changed = True
-            txt_lines[index] = nb_ent_txt
-        index += 1
-
         if selected != None:
+
             ent_txt0 = "{} ({}/{}), {} days old".format(selected.name, 
                                                 selected.sex, 
                                                 round(selected.libido) if not selected.pregnant else "P{}".format(round(selected.gestation/240)),
                                                 selected.age)
+
+            nb_ent_txt = "Selected: {}".format(ent_txt0)
+            if txt_lines[index] != nb_ent_txt:
+                changed = True
+                txt_lines[index] = nb_ent_txt
+            index += 1
 
             ent_txt_social = "Social feats: "
             for i, sf in enumerate(selected.social_vector):
@@ -329,7 +330,7 @@ def main():
 
             ent_txt5 = ""
         else:
-            ent_txt0 = ""
+            # ent_txt0 = ""
             ent_txt_social = ""
             ent_txt1 = ""
             ent_txt2 = ""
@@ -337,10 +338,10 @@ def main():
             ent_txt4 = ""
             ent_txt5 = ""
 
-        if txt_lines[index] != ent_txt0:
-            changed = True
-            txt_lines[index] = ent_txt0
-        index += 1
+        # if txt_lines[index] != ent_txt0:
+        #     changed = True
+        #     txt_lines[index] = ent_txt0
+        # index += 1
         if txt_lines[index] != ent_txt_social:
             changed = True
             txt_lines[index] = ent_txt_social
@@ -519,8 +520,8 @@ def main():
 
         if changed:
             for i, l in enumerate(txt_lines):
-                # if l != "":
-                shift = drawer.draw_text(l, font, fontsize, info_surface, shift)
+                if l != "":
+                    shift = drawer.draw_text(l, font, fontsize, info_surface, shift)
                     # txt_lines[i] = ""
             if not fast:
                 window.blit(info_surface, (main_surface.get_width(),0))
