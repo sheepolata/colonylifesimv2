@@ -485,7 +485,7 @@ def main():
             index += 1
         else:
             for i in range(7):
-                _txt = " "
+                _txt = ""
                 if txt_lines[index] != _txt:
                     changed = True
                     txt_lines[index] = _txt
