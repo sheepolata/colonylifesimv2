@@ -132,27 +132,27 @@ class Entity(object):
     def update(self):
 
         if self.health <= 0:
-            print("{} died of bad health at {} days old".format(self.name, self.age))
+            # print("{} died of bad health at {} days old".format(self.name, self.age))
             console.console.print("{} died of bad health at {} days old".format(self.name, self.age))
             self.dead = True
             self.tile.rm_entity(self)
         if self.thirst <= 0:
             self.health -= 100/(6*(np.random.randint(0, 3)+1))
             if self.health <= 0:
-                print("{} died of thirst at {} days old".format(self.name, self.age))
+                # print("{} died of thirst at {} days old".format(self.name, self.age))
                 console.console.print("{} died of thirst at {} days old".format(self.name, self.age))
                 self.dead = True
                 self.tile.rm_entity(self)
         if self.nutrition <= 0:
             self.health -= 100/(6*(np.random.randint(11, 24)+1))
             if self.health <= 0:
-                print("{} died of starvation at {} days old".format(self.name, self.age))
+                # print("{} died of starvation at {} days old".format(self.name, self.age))
                 console.console.print("{} died of starvation at {} days old".format(self.name, self.age))
                 self.dead = True
                 self.tile.rm_entity(self)
         if self.age >= 30 * self.old_age_thresh:
             if np.random.random() < (1 - ((self.age-(30 * self.old_age_thresh))/(30 * self.old_age_thresh))):
-                print("{} died of old age at {} days old (death chance: {})".format(self.name, self.age, round(1 - ((self.age-(30 * self.old_age_thresh))/(30 * self.old_age_thresh)), 2)))
+                # print("{} died of old age at {} days old (death chance: {})".format(self.name, self.age, round(1 - ((self.age-(30 * self.old_age_thresh))/(30 * self.old_age_thresh)), 2)))
                 console.console.print("{} died of old age at {} days old (death chance: {})".format(self.name, self.age, round(1 - ((self.age-(30 * self.old_age_thresh))/(30 * self.old_age_thresh)), 2)))
                 self.dead = True
                 self.tile.rm_entity(self)
@@ -532,19 +532,19 @@ class Entity(object):
             self.work_left = 9
 
     def mate(self, other, forced_pregnancy=False):
-        print("{} ({}) mate with {} ({})".format(self.name, self.sex, other.name, other.sex))
+        # print("{} ({}) mate with {} ({})".format(self.name, self.sex, other.name, other.sex))
         console.console.print("{} ({}) mate with {} ({})".format(self.name, self.sex, other.name, other.sex))
         self.state = "MATE"
         self.work_left = np.random.randint(1, 9)
         if self.sex != other.sex and (np.random.random() < 0.3 or forced_pregnancy):
             if self.sex == 'F' and not self.pregnant:
-                print("{} got pregnant!".format(self.name))
+                # print("{} got pregnant!".format(self.name))
                 console.console.print("{} got pregnant!".format(self.name))
                 self.pregnant = True
                 self.gestation = 240 * (np.random.randint(20, 26)) + np.random.randint(0, 240)
                 self.child_other_parent = other
             elif other.sex == 'F' and not other.pregnant:
-                print("{} got pregnant!".format(other.name))
+                # print("{} got pregnant!".format(other.name))
                 console.console.print("{} got pregnant!".format(other.name))
                 other.pregnant = True
                 other.gestation = 240 * (np.random.randint(20, 26)) + np.random.randint(0, 240)
@@ -697,19 +697,19 @@ class Entity(object):
             _modif = 0.0
             if _c in self.friends:
                 _interactioninfo = "friend"
-                if np.random.random() >= p.behaviour_params["SOCIAL_INTERACTION_POSITIVE_REENFORCMENT_CHANCE"]:
+                if np.random.random() <= p.behaviour_params["SOCIAL_INTERACTION_POSITIVE_REENFORCMENT_CHANCE"]:
                     _modif = self.subb_befriend(_c)
                 else:
                     _modif = self.subb_insult(_c)
             elif _c in self.foes:
                 _interactioninfo = "foe"
-                if np.random.random() >= p.behaviour_params["SOCIAL_INTERACTION_POSITIVE_REENFORCMENT_CHANCE"]:
+                if np.random.random() <= p.behaviour_params["SOCIAL_INTERACTION_POSITIVE_REENFORCMENT_CHANCE"]:
                     _modif = self.subb_insult(_c)
                 else:
                     _modif = self.subb_befriend(_c)
             else:
                 _interactioninfo = "neutral"
-                if np.random.random() >= p.behaviour_params["SOCIAL_INTERACTION_NEUTRAL_REENFORCMENT_CHANCE"]:
+                if np.random.random() <= p.behaviour_params["SOCIAL_INTERACTION_NEUTRAL_REENFORCMENT_CHANCE"]:
                     _modif = self.subb_befriend(_c)
                 else:
                     _modif = self.subb_insult(_c)

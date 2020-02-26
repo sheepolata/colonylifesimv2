@@ -42,7 +42,10 @@ class Simulation(object):
 
         self.nb_loop_monitoring = 500
         self.nb_loop_monitoring_curr = 0
-        self.tree_update_time = []
+        self.trees_update_time = []
+        self.foods_update_time = []
+        self.entities_update_time = []
+        self.buildings_update_time = []
 
 
     def reset(self):
@@ -78,20 +81,42 @@ class Simulation(object):
     def update(self):
         self.date += 1
 
+        _t = time.time()
         for b in self.buildings:
             b.update()
+        if self.nb_loop_monitoring_curr < self.nb_loop_monitoring:
+            self.buildings_update_time.append(time.time() - _t)
+
+        _t = time.time()
         for e in self.entities:
             e.update()
+        if self.nb_loop_monitoring_curr < self.nb_loop_monitoring:
+            self.entities_update_time.append(time.time() - _t)
+        
+        _t = time.time()
         for f in self.foods:
             f.update()
+        if self.nb_loop_monitoring_curr < self.nb_loop_monitoring:
+            self.foods_update_time.append(time.time() - _t)
 
         _t = time.time()
         for t in self.trees:
             t.update()
         if self.nb_loop_monitoring_curr < self.nb_loop_monitoring:
-            pass
+            self.trees_update_time.append(time.time() - _t)
 
-        self.nb_loop_monitoring_curr += 1
+        if self.nb_loop_monitoring_curr < self.nb_loop_monitoring:
+            if self.nb_loop_monitoring_curr % 100 == 0:
+                print("Profiling... {}/{}".format(self.nb_loop_monitoring_curr, self.nb_loop_monitoring))
+            self.nb_loop_monitoring_curr += 1
+
+        if self.nb_loop_monitoring_curr == self.nb_loop_monitoring:
+            print("#### PROFILING (time in ms) ####")
+            print("Buildings Update Time: ~{} [{} ; {}]".format(np.mean(self.buildings_update_time)*1000, min(self.buildings_update_time)*1000, max(self.buildings_update_time)*1000))
+            print("Entities Update Time:  ~{} [{} ; {}]".format(np.mean(self.entities_update_time)*1000, min(self.entities_update_time)*1000, max(self.entities_update_time)*1000))
+            print("Foods Update Time:     ~{} [{} ; {}]".format(np.mean(self.foods_update_time)*1000, min(self.foods_update_time)*1000, max(self.foods_update_time)*1000))
+            print("Tree Update Time:      ~{} [{} ; {}]".format(np.mean(self.trees_update_time)*1000, min(self.trees_update_time)*1000, max(self.trees_update_time)*1000))
+            self.nb_loop_monitoring_curr += 1
 
         # print(len(self.buildings))
 
