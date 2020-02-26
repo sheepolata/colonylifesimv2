@@ -2,6 +2,7 @@
 import numpy as np
 import pygame
 import math
+import time
 
 import parameters as p
 import utils
@@ -38,6 +39,10 @@ class Simulation(object):
         self.nb_birth = 0
 
         self.date = 0
+
+        self.nb_loop_monitoring = 500
+        self.nb_loop_monitoring_curr = 0
+        self.tree_update_time = []
 
 
     def reset(self):
@@ -79,8 +84,14 @@ class Simulation(object):
             e.update()
         for f in self.foods:
             f.update()
+
+        _t = time.time()
         for t in self.trees:
             t.update()
+        if self.nb_loop_monitoring_curr < self.nb_loop_monitoring:
+            pass
+
+        self.nb_loop_monitoring_curr += 1
 
         # print(len(self.buildings))
 

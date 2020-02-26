@@ -3,6 +3,7 @@ import pathfinding as pf
 import utils
 import pprint
 import math
+import time
 
 import pygame
 
@@ -984,8 +985,6 @@ class Entity(object):
             Entity.randomise_state_and_family(e, ent_list)
             # print(e.age_raw, e)
 
-
-
 class Food(object):
     """docstring for Food"""
     def __init__(self, simu, tile, biome="GRASS"):
@@ -1067,8 +1066,7 @@ class ForestFood(Food):
         self.available = False
 
         self.lifespan = 240 * np.random.randint(4, 8) + np.random.randint(1, 240)*np.random.randint(1, 30)
-        
-    
+            
 class PlantedFood(Food):
     """docstring for PlantedFood"""
     def __init__(self, simu, tile, biome, creator):
@@ -1109,9 +1107,6 @@ class PlantedFood(Food):
         if not self.available and self.resource_qtt == self.resource_max:#> self.resource_max*0.95:
             self.available = True
 
-
-
-
 class Tree(object):
     """docstring for Tree"""
     def __init__(self, simu, tile, randomness=False):
@@ -1136,14 +1131,8 @@ class Tree(object):
         self.dead = False
 
     def update(self):
-        self.age += 1
-        # if self.age > self.lifespan:
-        #     if np.random.random() < 0.1:
-        #         self.dead = True
 
-        # if self.dead:
-        #     self.tile.set_tree(None)
-        #     return
+        self.age += 1
 
         if self.age%(self.cycle) == 0:
             if np.random.random() < 0.1:
@@ -1162,27 +1151,7 @@ class Tree(object):
                     t = np.random.choice(av_n, p=prob)
                     if t.tree == None and t.food == None:
                         t.set_food(ForestFood(self.simu, t, t.get_type()))
-            # elif np.random.random() < 0.3:
-            #     av_n = [n for n in self.tile.get_neighbours(dn=True) if (not n.is_river and n.get_type() in Tree.get_good_tiles())]
-            #     if av_n:
-            #         prob = []
-            #         for n in av_n:
-            #             if n.get_type() in ["GRASS"]:
-            #                 prob.append(3)
-            #             elif n.get_type() in ["HILL", "SAND"]:
-            #                 prob.append(2)
-            #             elif n.get_type() in ["MOUNTAIN"]:
-            #                 prob.append(1)
-            #             else:
-            #                 prob.append(1)
-            #         prob = [_p/sum(prob) for _p in prob]
 
-            #         t = np.random.choice(av_n, p=prob)
-            #         if t.tree == None and t.food == None:
-            #             t.set_tree(Tree(self.simu, t))
-
-
-        
 
     @staticmethod
     def get_good_tiles():
