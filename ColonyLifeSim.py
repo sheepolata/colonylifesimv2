@@ -42,7 +42,8 @@ class ThreadSimulation(threading.Thread):
             if _wait_time > 0:
                 time.sleep(_wait_time)
 
-            self.loop_times.append(1.0 / (time.time() - _time))
+            _div = time.time() - _time if time.time() - _time > 0 else 0.00001
+            self.loop_times.append(1.0 / _div)
             if len(self.loop_times) > self.max_loop_time:
                 self.loop_times = self.loop_times[1:]
             self.tick_second = np.mean(self.loop_times)
