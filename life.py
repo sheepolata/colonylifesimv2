@@ -130,7 +130,9 @@ class Entity(object):
         self.behaviours_by_priority.append(self.b_idle)
 
     def update(self):
+        _d_time = {}
 
+        _t = time.time()
         if self.health <= 0:
             # print("{} died of bad health at {} days old".format(self.name, self.age))
             console.console.print("{} died of bad health at {} days old".format(self.name, self.age))
@@ -161,34 +163,43 @@ class Entity(object):
             for e in self.simu.entities:
                 if e != self and self in e.relations:
                     del e.relations[self]
-            return
-
-        if self.work_left <= 0:
-
-            if self.chck_surrounding_tmr >= 6: #Every hour if not working
-                self.chck_surrounding_tmr = 0
-                self.check_surrounding()
-            else:
-                self.chck_surrounding_tmr += 1
-
-            for b in self.behaviours_by_priority:
-                if b():
-                    break
-            
-            for n in self.grid.get_neighbours_of(self.tile) + [self.tile]:
-                self.known_tiles.append(n)
-            self.known_tiles = list(set(self.known_tiles))
-
-            # print("{} ({})".format(len(self.known_tiles), self.exploration_satistaction))
-        else:
-            self.work_left -= 1
+            return _d_time
 
         self.nutrition = max(0, self.nutrition-self.nutrition_rate)
         self.thirst    = max(0, self.thirst-self.thirst_rate)
         if self.nutrition > self.nutrition_max*0.35 and self.thirst > self.thirst_max*0.35:
             self.health = min(self.health_max, self.health + np.mean([self.nutrition/self.nutrition_max, self.thirst/self.thirst_max])/100)
+        _d_time["_update_intern_time"] = time.time() - _t
 
+        _d_time["_check_surroud_time"] = 0
+        _d_time["_behaviour_time"]     = 0
+        _d_time["_known_tile_time"]    = 0
+        if self.work_left <= 0:
 
+            _t = time.time()
+            if self.chck_surrounding_tmr >= 6: #Every hour if not working
+                self.chck_surrounding_tmr = 0
+                self.check_surrounding()
+            else:
+                self.chck_surrounding_tmr += 1
+            _d_time["_check_surround_time"] = time.time() - _t
+            _t = time.time()
+            for b in self.behaviours_by_priority:
+                if b():
+                    break
+            _d_time["_behaviour_time"] = time.time() - _t
+            
+            _t = time.time()
+            for n in self.grid.get_neighbours_of(self.tile) + [self.tile]:
+                self.known_tiles.append(n)
+            self.known_tiles = list(set(self.known_tiles))
+            _d_time["_known_tile_time"] = time.time() - _t
+
+            # print("{} ({})".format(len(self.known_tiles), self.exploration_satistaction))
+        else:
+            self.work_left -= 1
+
+        _t = time.time()
         if self.pregnant:
             self.libido = 0
             self.gestation -= 1
@@ -196,6 +207,7 @@ class Entity(object):
                 self.give_birth()
         else:
             self.libido = min(100, self.libido + (np.random.random()/4.0))
+        _d_time["_pregnancy_time"] = time.time() - _t
 
         self.age_raw += 1
         minutes = (self.age_raw*10)%60
@@ -205,7 +217,7 @@ class Entity(object):
 
         self.visible_tiles = [[], [], [], [], []]
 
-
+        return _d_time
 
     def move_to(self, dest):
         self.tile.rm_entity(self)
@@ -234,7 +246,6 @@ class Entity(object):
             _to_sort.sort(key=key)
 
             self.water_memory = _to_sort[:min(len(_to_sort), self.water_memory_max)]
-
         
     def update_relations(self):
         for e in self.relations:
@@ -734,7 +745,6 @@ class Entity(object):
 
         return modif
 
-
     def subb_befriend(self, _other):
         if not _other in self.relations.keys():
             self.relations[_other] = 0.0
@@ -746,7 +756,6 @@ class Entity(object):
         _other.relations[self] += modif * 1.5
 
         return modif
-
 
     def b_explore(self):
         # print(self.name, str(self.goto_tile), str(self.tile))
