@@ -172,7 +172,7 @@ class Entity(object):
         _d_time["_update_intern_time"] = time.time() - _t
 
         _d_time["_check_surroud_time"] = 0
-        _d_time["_behaviour_time"]     = 0
+        _d_time["_behaviour_time"]     = (0, "None")
         _d_time["_known_tile_time"]    = 0
         if self.work_left <= 0:
 
@@ -183,11 +183,12 @@ class Entity(object):
             else:
                 self.chck_surrounding_tmr += 1
             _d_time["_check_surround_time"] = time.time() - _t
+
             _t = time.time()
             for b in self.behaviours_by_priority:
                 if b():
                     break
-            _d_time["_behaviour_time"] = time.time() - _t
+            _d_time["_behaviour_time"] = (time.time() - _t, self.state)
             
             _t = time.time()
             for n in self.grid.get_neighbours_of(self.tile) + [self.tile]:
@@ -804,6 +805,8 @@ class Entity(object):
                 tilelist = list(set().union(self.grid.shallow_water_tiles, self.grid.river_tiles))
                 for _t in ts:
                     dist = utils.distance2p(_t.middle, self.get_closest_water(tilelist, center=_t)[0].middle)
+                    if dist <= 0: 
+                        dist = 1
                     _p.append(1/dist)
                 _p = [__p/sum(_p) for __p in _p]
                 ch = np.random.choice(ts, p=_p)

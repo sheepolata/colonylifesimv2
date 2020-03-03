@@ -19,9 +19,12 @@ import threading
 
 class ThreadSimulation(threading.Thread):
     """docstring for ThreadSimulation"""
-    def __init__(self, simu, freq):
+    def __init__(self, simu, freq, profiling=False, prof_steps=1000):
         super(ThreadSimulation, self).__init__()
         self.simu = simu
+        self.simu.nb_loop_monitoring = prof_steps
+        self._prof_counter = 0
+        self._profiling = profiling
         self.freq = freq
 
         self._pause = False
@@ -47,6 +50,11 @@ class ThreadSimulation(threading.Thread):
             if len(self.loop_times) > self.max_loop_time:
                 self.loop_times = self.loop_times[1:]
             self.tick_second = np.mean(self.loop_times)
+
+            if self._profiling:
+                self._prof_counter += 1
+                if self._prof_counter > self.simu.nb_loop_monitoring:
+                    self._stop = True
 
     def pause(self):
         self._pause = not self._pause

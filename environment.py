@@ -40,7 +40,7 @@ class Simulation(object):
 
         self.date = 0
 
-        self.nb_loop_monitoring = 50
+        self.nb_loop_monitoring = 1000
         self.nb_loop_monitoring_curr = 0
         self.trees_update_time = []
         self.foods_update_time = []
@@ -122,13 +122,32 @@ class Simulation(object):
             _d_total = {}
             for _ent_d in self.entity_time_dict:
                 for k in _ent_d:
-                    try:
-                        _d_total[k].append(_ent_d[k])
-                    except Exception as e:
-                        _d_total[k] = [_ent_d[k]]
+                    if k == "_behaviour_time":
+                        try:
+                            _d_total[k].append(_ent_d[k][0])
+                            _d_total["states"].append(_ent_d[k][1])
+                        except Exception as e:
+                            _d_total[k] = [_ent_d[k][0]]
+                            _d_total["states"] = [_ent_d[k][1]]
+                    else:
+                        try:
+                            _d_total[k].append(_ent_d[k])
+                        except Exception as e:
+                            _d_total[k] = [_ent_d[k]]
 
             for k in _d_total:
-                print("\t{}: ~{} [{} ; {}]".format(k, np.mean(_d_total[k])*1000, min(_d_total[k])*1000, max(_d_total[k])*1000))
+                if k != "states":
+                    print("\t{}: ~{} [{} ; {}]".format(k, np.mean(_d_total[k])*1000, min(_d_total[k])*1000, max(_d_total[k])*1000))
+                else:
+                    _d_states = {}
+                    for i, st in enumerate(_d_total["states"]):
+                        try:
+                            _d_states[st].append(_d_total["_behaviour_time"][i])
+                        except Exception as e:
+                            _d_states[st] = [_d_total["_behaviour_time"][i]]
+                    for k in _d_states:
+                        print("\t\t{}: ~{} [{} ; {}]".format(k, np.mean(_d_states[k])*1000, min(_d_states[k])*1000, max(_d_states[k])*1000))
+
 
             print("Foods Update Time:     ~{} [{} ; {}]".format(np.mean(self.foods_update_time)*1000, min(self.foods_update_time)*1000, max(self.foods_update_time)*1000))
             print("Tree Update Time:      ~{} [{} ; {}]".format(np.mean(self.trees_update_time)*1000, min(self.trees_update_time)*1000, max(self.trees_update_time)*1000))
