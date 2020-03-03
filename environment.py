@@ -10,6 +10,7 @@ import pathfinding as pf
 import perlin
 import life
 import console
+import profiler
 
 class Simulation(object):
     """docstring for Simulation"""
@@ -152,8 +153,7 @@ class Simulation(object):
             print("Foods Update Time:     ~{} [{} ; {}]".format(np.mean(self.foods_update_time)*1000, min(self.foods_update_time)*1000, max(self.foods_update_time)*1000))
             print("Tree Update Time:      ~{} [{} ; {}]".format(np.mean(self.trees_update_time)*1000, min(self.trees_update_time)*1000, max(self.trees_update_time)*1000))
             
-
-
+            profiler.profiler.display_time_infos()
 
             self.nb_loop_monitoring_curr += 1
 

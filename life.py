@@ -11,6 +11,7 @@ import parameters as p
 import environment as env
 import ColonyLifeSim as _cls
 import console
+import profiler
 
 class Entity(object):
     """docstring for Entity"""
@@ -376,11 +377,16 @@ class Entity(object):
 
     #return [include_self, _exclude_self, unexplored_reachable_tiles, double_radius, double_radius_exclude]
     def get_visible_tiles(self, index, costum=-1):
+        _t = time.time()
+        res = None
         if costum != -1:
-            return self.compute_visible_tiles_step(-1, costum=costum)
-        if self.visible_tiles[index] == []:
+            res = self.compute_visible_tiles_step(-1, costum=costum)
+        elif self.visible_tiles[index] == []:
             self.compute_visible_tiles_step(index, costum=costum)
-        return self.visible_tiles[index]
+        if res == None:
+            res = self.visible_tiles[index] 
+        profiler.profiler.add_time_record("get_visible_tiles", time.time() - _t)
+        return res
 
     def eat_from_inventory(self):
         self.state = "EAT"
@@ -462,6 +468,10 @@ class Entity(object):
         return self.goto_position(tile, state="GOTO WATER", state_short="GTWtr")
 
     def goto_position(self, _tile, state="GOTO POSITION", state_short="GTPos"):
+        _t = time.time()
+
+        res = None
+
         self.state = state
         self.state_short = state_short
         if (self.goto_tile == _tile) and self.path != []:
@@ -472,17 +482,19 @@ class Entity(object):
             if self.tile in _tile.get_neighbours() or self.tile == _tile or self.path == []:
                 #destination reached
                 self.reset_path()
-                return True
+                res = True
         else:
             self.goto_tile = _tile
             self.path = pf.astar(self.tile, self.goto_tile, self.grid, forbidden=self.forbidden_tiles)
             if self.path == None:
                 # self.reset_path()
                 print(self.name, "NO PATH TO ", self.goto_tile.getXY())
-                return False
+                res = False
             else:
                 self.path = self.path[1:]
-                return True
+                res = True
+        profiler.profiler.add_time_record("goto_position", time.time() - _t)
+        return res
 
     def reset_path(self):
         self.goto_tile = None
