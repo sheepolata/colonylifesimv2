@@ -15,8 +15,8 @@ initial_params = {
 }
 
 sim_params = {
-    "ACTION_TICK"      : 200,
-    "ACTION_TICK_BASE" : 200,
+    "ACTION_TICK"      : 10,
+    "ACTION_TICK_BASE" : 10,
     "SOCIAL_FEATURES"  : 4,
     "FRIEND_FOE_TRESH" : 1
 }

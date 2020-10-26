@@ -169,11 +169,19 @@ def main():
                         txt_lines.append("")
                     displ_all_ents = not displ_all_ents
                 if event.key == K_RIGHT:
-                    p.sim_params["ACTION_TICK"] = utils.clamp(p.sim_params["ACTION_TICK"]-25, 0, 1000)
+                    p.sim_params["ACTION_TICK"] = utils.clamp(p.sim_params["ACTION_TICK"]-5, 0, 1000)
+                    if p.sim_params["ACTION_TICK"] == 0:
+                        p.sim_params["ACTION_TICK"] = 1
+                    elif p.sim_params["ACTION_TICK"] == 6:
+                        p.sim_params["ACTION_TICK"] = 5
                     thread_simu.freq = p.sim_params["ACTION_TICK"]
 
                 if event.key == K_LEFT:
-                    p.sim_params["ACTION_TICK"] = utils.clamp(p.sim_params["ACTION_TICK"]+25, 0, 1000)
+                    p.sim_params["ACTION_TICK"] = utils.clamp(p.sim_params["ACTION_TICK"]+5, 0, 1000)
+                    if p.sim_params["ACTION_TICK"] == 0:
+                        p.sim_params["ACTION_TICK"] = 1
+                    elif p.sim_params["ACTION_TICK"] == 6:
+                        p.sim_params["ACTION_TICK"] = 5
                     thread_simu.freq = p.sim_params["ACTION_TICK"]
 
                 if event.key == K_e:

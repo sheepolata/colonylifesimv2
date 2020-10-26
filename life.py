@@ -285,7 +285,9 @@ class Entity(object):
         if center == None:
             center = self.tile
         of_type = [t for t in tile_list if (t.get_type()=="SHALLOW_WATER" or t.is_river)]
-
+        if of_type == []:
+            return []
+            
         def key(e):
             return utils.distance2p(center.getXY(), e.getXY())
         of_type.sort(key=key)
@@ -296,6 +298,8 @@ class Entity(object):
         if center == None:
             center = self.tile
         of_type = [t for t in tile_list if (t.food!=None)]
+        if of_type == []:
+            return []
 
         def key(e):
             return utils.distance2p(center.getXY(), e.getXY())
@@ -307,6 +311,8 @@ class Entity(object):
         if center == None:
             center = self.tile
         of_type = [t for t in tile_list if (t.entities!=[])]
+        if of_type == []:
+            return []
 
         def _sort_key(e):
             return utils.distance2p(center.getXY(), e.getXY())
@@ -513,8 +519,8 @@ class Entity(object):
                 self.state_short = "I"
                 self.goto_position(self.goto_tile, state=self.state, state_short=self.state_short)
             else:
-                self.state = "THINK"
-                self.state_short = "Th"
+                # self.state = "THINK"
+                # self.state_short = "Th"
                 #choose random tile
                 _tiles = self.get_visible_tiles(3)
                 if _tiles:

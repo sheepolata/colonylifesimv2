@@ -19,6 +19,8 @@ class Simulation(object):
         self.nb_entities, self.nb_food, self.nb_river = nb_ent, nb_food, nb_river
         self.grid = Grid(w, h, self)
 
+
+        self.entity_threads = []
         self.entities = []
         self.foods = []
         self.trees = []
